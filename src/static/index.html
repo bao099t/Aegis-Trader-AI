@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Intelligence | Real-time Alerts</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="navbar">
+            <div class="brand">
+                <span class="logo-icon">⚡</span>
+                <h1>MARKET<span class="highlight">INTEL</span></h1>
+            </div>
+            <div class="status-indicator">
+                <span id="heartbeat-status">LOADING...</span>
+                <span class="tag" id="cycle-latency">--ms</span>
+            </div>
+            <button id="kill-switch-btn" class="kill-btn">☠️ KILL SWITCH</button>
+        </header>
+
+        <main class="dashboard">
+            <section class="stats-bar">
+                <div class="stat-card">
+                    <span class="label">Total Alerts</span>
+                    <span class="value" id="stat-total">--</span>
+                </div>
+                <div class="stat-card">
+                    <span class="label">Delivered</span>
+                    <span class="value" id="stat-sent">--</span>
+                </div>
+                <div class="stat-card">
+                    <span class="label">Win Rate</span>
+                    <span class="value" id="stat-winrate" style="color: var(--success)">--%</span>
+                </div>
+                <div class="stat-card">
+                    <span class="label">AVG P&L (NET)</span>
+                    <span class="value" id="stat-pnl">--%</span>
+                </div>
+                <div class="stat-card" style="border-bottom: 2px solid var(--danger)">
+                    <span class="label">MAX DRAWDOWN</span>
+                    <span class="value" id="stat-drawdown" style="color: var(--danger)">0.00%</span>
+                </div>
+            </section>
+
+            <section class="main-content">
+                <section class="feed-container">
+                    <div class="feed-header">
+                        <h2>Live Feed</h2>
+                        <span class="last-updated">Last updated: <span id="last-update">...</span></span>
+                    </div>
+                    <div id="alert-feed" class="alert-list">
+                        <!-- Alerts injected here -->
+                        <div class="loading">Loading intelligence...</div>
+                    </div>
+                </section>
+
+                <aside class="sidebar">
+                    <div class="side-card">
+                        <h3>Market Heartbeat</h3>
+                        <div class="macro-stats" id="macro-status">
+                            <p>Loading market mood...</p>
+                        </div>
+                    </div>
+
+                    <div class="side-card" style="border-left: 4px solid var(--accent)">
+                        <h3>Autonomous Orders</h3>
+                        <div id="order-feed" style="font-size: 0.85rem;">
+                            <p style="color: var(--text-secondary)">Waiting for elite signals...</p>
+                        </div>
+                    </div>
+
+                    <div class="side-card">
+                        <h3>Watchlist Manager</h3>
+                        <div class="watchlist-input">
+                            <input type="text" id="new-ticker" placeholder="e.g. NVDA">
+                            <button id="add-ticker">Add</button>
+                        </div>
+                        <ul id="watchlist-items" class="watchlist-list">
+                            <!-- Watchlist items here -->
+                        </ul>
+                    </div>
+                </aside>
+            </section>
+        </main>
+
+        <footer class="legal-footer">
+            <p>DISCLAIMER: This tool is for informational purposes only. Data may be delayed or inaccurate.
+                Content is not financial advice. Do not trade based solely on these alerts.</p>
+        </footer>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+
+</html>

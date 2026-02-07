@@ -1,0 +1,26 @@
+# User Environment
+.env
+.env.local
+
+# Databases/Logs
+*.db
+data/*.db
+data/*.json
+data/guardian_state.json
+seen.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.idea/
+.vscode/
+
+# Performance Reports
+DETAILED_REPORT.md
+BACKTEST_RESULTS.md
+
+# Simulation Caches
+src/simulation/__pycache__
