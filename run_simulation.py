@@ -11,39 +11,44 @@ sys.path.append(os.path.join(os.path.dirname(__file__)))
 from src.simulation.data_loader import DataLoader
 from src.simulation.strategy import DailySurferStrategy
 from src.intelligence.predictor import PricePredictor
+from src.intelligence.asset_selector import AssetSelector
 
 def main():
     print("=========================================")
     print("    AEGIS TURBO SIMULATION (12-YEAR)    ")
-    print("      Maximum Profit Optimization       ")
+    print("      Dynamic Alpha Discovery (DAD)     ")
     print("           (2014 - 2026)                 ")
     print("=========================================")
     
     # 1. Configuration
     USE_AI = True
     predictor = PricePredictor(mode="hybrid")
-    TICKERS = [
-        'BTC-USD', 'ETH-USD', 'SOL-USD', 'DOGE-USD', # Alpha Crypto
-        'NVDA', 'TSLA', 'AAPL', 'AMD', 'MSTR'        # Alpha Tech
+    
+    # DAD Broad Universe (Phase 9)
+    BROAD_UNIVERSE = [
+        'BTC-USD', 'ETH-USD', 'SOL-USD', 'DOGE-USD', 'LINK-USD',
+        'NVDA', 'TSLA', 'AMZN', 'AAPL', 'MSFT', 'AMD', 'MSTR', 'GOOGL', 'META',
+        'GC=F', 'CL=F'
     ]
     
     DATA_START_DATE = "2013-01-01" 
     START_DATE = "2014-01-01"
     END_DATE = "2026-12-31" 
     INITIAL_CAPITAL = 10000.0
-    MAX_POSITIONS = 3
-    ALLOCATION_PER_TRADE = 0.30 
+    MAX_POSITIONS = 5
+    ALLOCATION_PER_TRADE = 0.20 
     
     # 2. Initialize Components
     loader = DataLoader() 
     strategy = DailySurferStrategy()
+    selector = AssetSelector(broad_universe=BROAD_UNIVERSE)
     
     # 3. Load and Prepare Data
     data_map = {}
-    print(f"Loading data for {len(TICKERS)} assets...")
+    print(f"Loading data for {len(BROAD_UNIVERSE)} assets...")
     all_dates = set()
     
-    for ticker in TICKERS:
+    for ticker in BROAD_UNIVERSE:
         df = loader.fetch_data(ticker, DATA_START_DATE, END_DATE)
         if df is not None and not df.empty:
             if isinstance(df.columns, pd.MultiIndex):
@@ -76,9 +81,18 @@ def main():
     last_known_prices = {}
     reentry_guard = {} # ticker -> last_exit_date
     
+    trading_day_count = 0
+    active_tickers = BROAD_UNIVERSE[:5] # Initial guess
+    
     for current_date in timeline:
         daily_candidates = []
+        trading_day_count += 1
         
+        # Phase 9: Dynamic Re-balancing every 30 days for Agile Alpha
+        if trading_day_count % 30 == 0:
+            active_tickers = selector.get_top_alpha(data_map, current_date, top_n=5)
+            # print(f"[{current_date.date()}] DAD Re-balanced. Active Alpha: {active_tickers}")
+            
         for ticker, df in data_map.items():
             if current_date in df.index:
                 row = df.loc[current_date]
@@ -89,6 +103,10 @@ def main():
                 if ticker in portfolio:
                     portfolio[ticker]['high_water'] = max(portfolio[ticker]['high_water'], price)
             
+            # Skip non-active assets unless we already have a position (to handle exits)
+            if ticker not in active_tickers and ticker not in portfolio:
+                continue
+
             if current_date in df.index and ticker in last_known_prices:
                 price = last_known_prices[ticker]
                 row = df.loc[current_date]
