@@ -86,7 +86,7 @@ Verified across a rigorous **12-year** simulation covering the 2018 crash, 2020 
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/Aegis-Trader-AI.git
+git clone https://github.com/bao099t/Aegis-Trader-AI.git
 
 # Initialize environment
 pip install -r requirements.txt
