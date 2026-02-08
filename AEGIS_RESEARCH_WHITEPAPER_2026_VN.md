@@ -24,7 +24,11 @@ Khác với Giả thuyết Thị trường Hiệu quả (EMH), chúng tôi hoạ
 ### 2.1. Động cơ Dự báo: Học máy Tập hợp Random Forest
 Đơn vị dự báo cốt lõi là mô hình phân loại Random Forest (RF), được lựa chọn vì khả năng xử lý các không gian đặc trưng đa chiều, phi tuyến tính mà không cần các giả định cứng nhắc về mô hình lợi nhuận tuyến tính.
 *   **Vector Đặc trưng ($X$)**:
-    $$X = \{RSI_{14}, \text{Dist}_{SMA10}, \text{Dist}_{SMA50}, \text{Dist}_{SMA200}, \sigma_{20}, \text{Returns}_{t-1}\}$$
+
+```math
+X = \{ RSI_{14}, \text{Dist}_{SMA10}, \text{Dist}_{SMA50}, \text{Dist}_{SMA200}, \sigma_{20}, \text{Returns}_{t-1} \}
+```
+
 *   **Logic Tập hợp**: $N=100$ cây quyết định độc lập được huấn luyện trên $D=2000$ phiên lịch sử bằng tiêu chí Gini Impurity.
 *   **Xác suất Phân loại ($P$)**: Hệ thống thực thi lệnh mua (long) nếu và chỉ nếu xác suất bootstrapped thỏa mãn:
     $$P(y=1|X) > \tau, \text{ với } \tau = 0.65$$

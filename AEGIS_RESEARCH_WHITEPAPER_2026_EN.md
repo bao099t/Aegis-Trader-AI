@@ -24,7 +24,11 @@ Unlike the Efficient Markets Hypothesis (EMH), we operate under the AMH framewor
 ### 2.1. Predictive Engine: Random Forest Ensemble Learning
 The core predictive unit is a Random Forest (RF) classifier, chosen for its intrinsic ability to handle high-dimensional, non-linear feature spaces without the rigid assumptions of linear return models.
 *   **Feature Vector ($X$)**:
-    $$X = \{RSI_{14}, \text{Dist}_{SMA10}, \text{Dist}_{SMA50}, \text{Dist}_{SMA200}, \sigma_{20}, \text{Returns}_{t-1}\}$$
+
+```math
+X = \{ RSI_{14}, \text{Dist}_{SMA10}, \text{Dist}_{SMA50}, \text{Dist}_{SMA200}, \sigma_{20}, \text{Returns}_{t-1} \}
+```
+
 *   **Ensemble Logic**: $N=100$ independent decision trees are trained on $D=2000$ historical sessions using Gini Impurity as the splitting criterion.
 *   **Classification Probability ($P$)**: The system executes a long signal if and only if the bootstrapped probability satisfies:
     $$P(y=1|X) > \tau, \text{ where } \tau = 0.65$$
