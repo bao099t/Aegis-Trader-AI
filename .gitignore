@@ -18,9 +18,8 @@ venv/
 .idea/
 .vscode/
 
-# Performance Reports
-DETAILED_REPORT.md
-BACKTEST_RESULTS.md
 
 # Simulation Caches
 src/simulation/__pycache__
+run_simulation.py
+tests/

@@ -4,34 +4,35 @@ import datetime
 import pandas as pd
 import numpy as np
 
-# Add src to path
+# Add src to path for standalone imports
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.append(os.path.join(os.path.dirname(__file__)))
 
 from src.simulation.data_loader import DataLoader
 from src.simulation.strategy import DailySurferStrategy
+from src.intelligence.predictor import PricePredictor
 
 def main():
     print("=========================================")
-    print("    PORTFOLIO SIMULATION (HYBRID ARSENAL TEST)    ")
-    print("      Trend Hunter (>25) + Mean Reversion (<20)      ")
+    print("    AEGIS TURBO SIMULATION (12-YEAR)    ")
+    print("      Maximum Profit Optimization       ")
     print("           (2014 - 2026)                 ")
     print("=========================================")
     
     # 1. Configuration
+    USE_AI = True
+    predictor = PricePredictor(mode="hybrid")
     TICKERS = [
-        'BTC-USD', 'ETH-USD', # Crypto
-        'GC=F', 'CL=F',       # Commodities
-        'NVDA', 'TSLA', 'AMZN', 'AAPL', 'MSFT', 'GOOGL' # Tech Stocks
+        'BTC-USD', 'ETH-USD', 'SOL-USD', 'DOGE-USD', # Alpha Crypto
+        'NVDA', 'TSLA', 'AAPL', 'AMD', 'MSTR'        # Alpha Tech
     ]
     
+    DATA_START_DATE = "2013-01-01" 
     START_DATE = "2014-01-01"
     END_DATE = "2026-12-31" 
     INITIAL_CAPITAL = 10000.0
-    POSITION_SIZE_PCT = 0.20 # Max 5 positions? Or dynamic?
-    # User said: "Focus on Top 3". So maybe 33% capital each?
-    # Let's be safer: Max 3 positions, 30% each. 10% cash Reserve.
     MAX_POSITIONS = 3
-    ALLOCATION_PER_TRADE = 0.33 
+    ALLOCATION_PER_TRADE = 0.30 
     
     # 2. Initialize Components
     loader = DataLoader() 
@@ -40,17 +41,14 @@ def main():
     # 3. Load and Prepare Data
     data_map = {}
     print(f"Loading data for {len(TICKERS)} assets...")
-    
     all_dates = set()
     
     for ticker in TICKERS:
-        df = loader.fetch_data(ticker, START_DATE, END_DATE)
+        df = loader.fetch_data(ticker, DATA_START_DATE, END_DATE)
         if df is not None and not df.empty:
-            # Flatten MultiIndex
             if isinstance(df.columns, pd.MultiIndex):
                 df.columns = df.columns.get_level_values(0)
             
-            # Normalize Columns
             cols = {c.lower(): c for c in df.columns}
             rename_map = {}
             if 'close' in cols: rename_map[cols['close']] = 'Close'
@@ -61,231 +59,199 @@ def main():
             df.rename(columns=rename_map, inplace=True)
             
             try:
-                # Calculate Indicators (Turbo Mode Logic in strategy.prepare_data)
                 df_prepared = strategy.prepare_data(df)
                 data_map[ticker] = df_prepared
                 all_dates.update(df_prepared.index)
             except Exception as e:
                 print(f"ERROR processing {ticker}: {e}")
     
-    # Sort dates
-    timeline = sorted(list(all_dates))
+    timeline = sorted([d for d in all_dates if d >= pd.to_datetime(START_DATE)])
     print(f"Timeline: {len(timeline)} trading days.")
     
     # 4. Simulation Loop
     capital = INITIAL_CAPITAL
-    portfolio = {} # ticker -> { 'shares': float, 'entry_price': float }
+    portfolio = {} # ticker -> { 'shares': float, 'entry_price': float, 'high_water': float }
     history = []
     trades = []
-    
-    # 4. Simulation Loop
-    capital = INITIAL_CAPITAL
-    portfolio = {} # ticker -> { 'shares': float, 'entry_price': float }
-    history = []
-    trades = []
-    
     last_known_prices = {}
+    reentry_guard = {} # ticker -> last_exit_date
     
     for current_date in timeline:
-        # A. Mark to Market (Update Portfolio Value)
-        # current_prices = {} # OLD: Reset every day -> Caused 0 value on holidays
-        
-        # Update prices with today's data where available
         daily_candidates = []
         
         for ticker, df in data_map.items():
             if current_date in df.index:
                 row = df.loc[current_date]
                 price = row['Close']
-                last_known_prices[ticker] = price # Update last known
+                last_known_prices[ticker] = price
+                
+                # Update High Water Mark for Trailing Stop
+                if ticker in portfolio:
+                    portfolio[ticker]['high_water'] = max(portfolio[ticker]['high_water'], price)
             
-            # Use last known price for valuation/logic
-            # Note: Logic triggers should only happen on ACTIVE trading days for that asset
             if current_date in df.index and ticker in last_known_prices:
-                 price = last_known_prices[ticker]
-                 row = df.loc[current_date]
-                 
-                 # Logic Checks (Same as before)
-                 sma200 = row.get('SMA_200', 0)
-                 sma50 = row.get('SMA_50', 0)
-                 sma20 = row.get('SMA_20', 0)
-                 adx = row.get('ADX', 0)
-                 rsi = row.get('RSI', 50)
-                 
-                 if pd.isna(sma50) or pd.isna(sma20) or pd.isna(sma200): continue
-                 
-                 is_exit = price < sma20
-                 
-                 # --- HYBRID ARSENAL (Phase 5) ---
-                 # 1. MARKET REGIME CHECK
-                 # ADX > 25: Trending (Use Trend Hunter)
-                 # ADX < 20: Sideways (Use Mean Reversion)
-                 
-                 is_crypto = ticker in ['BTC-USD', 'ETH-USD']
-                 
-                 if adx > 25:
-                     # --- TREND HUNTER MODE ---
-                     if is_crypto:
-                         # Turbo for Crypto (Catch the pump early)
-                         is_uptrend = price > sma50
-                     else:
-                         # Balanced for Stocks (Safety first)
-                         is_uptrend = price > sma50 and price > sma200
-                         
-                     is_strong = True
-                     is_entry = is_uptrend and is_strong and rsi < 70
-                     
-                     # Trend Exit
-                     is_exit = price < sma20
-                     
-                 elif adx < 20:
-                     # --- MEAN REVERSION MODE 2.0 (Sniper + Bollinger) ---
-                     # Buy Fear (Extreme Oversold), Sell Greed
-                     
-                     bb_lower = row.get('BB_Lower', 0)
-                     bb_upper = row.get('BB_Upper', 999999)
-                     
-                     # Entry: RSI < 30 AND Price < Lower Band (Double confirmation)
-                     # This filters out "mildly oversold" drifts.
-                     is_entry = (rsi < 30) and (price < bb_lower)
-                     
-                     # Exit: RSI > 70 OR Price > Upper Band
-                     is_exit = (rsi > 70) or (price > bb_upper)
-                     
-                 else:
-                     # TRANSITION ZONE (20-25)
-                     # Do nothing or Strict Trend
-                     is_entry = False
-                     is_exit = price < sma20 # Protective stop still active
-                 
-                 daily_candidates.append({
-                     'ticker': ticker,
-                     'adx': adx,
-                     'price': price,
-                     'is_entry': is_entry,
-                     'is_exit': is_exit
-                 })
-                 
-        # Calculate Equity using Last Known Prices
+                price = last_known_prices[ticker]
+                row = df.loc[current_date]
+                
+                sma200 = row.get('SMA_200', 0)
+                sma50 = row.get('SMA_50', 0)
+                sma20 = row.get('SMA_20', 0)
+                atr = row.get('ATR', price * 0.05)
+                adx = row.get('ADX', 0)
+                rsi = row.get('RSI', 50)
+                
+                if pd.isna(sma50) or pd.isna(sma20) or pd.isna(sma200): continue
+                
+                # --- EXIT LOGIC (Balanced Turbo Trail) ---
+                is_exit = False
+                if ticker in portfolio:
+                    high_water = portfolio[ticker]['high_water']
+                    # 3.5x ATR for Balanced Hyper-Growth
+                    if price < (high_water - 3.5 * atr):
+                        is_exit = True
+                    # Fast MA safety exit
+                    elif price < sma20 and (price/portfolio[ticker]['entry_price'] - 1) < -0.05:
+                        is_exit = True
+
+                # --- ENTRY LOGIC (Agile Entry) ---
+                is_entry = False
+                if ticker not in portfolio:
+                    # Re-entry Guard (3 day cooldown)
+                    if ticker in reentry_guard:
+                        days_since_exit = (current_date - reentry_guard[ticker]).days
+                        if days_since_exit < 3:
+                            continue
+
+                    # Trend Barrier
+                    if adx > 20: 
+                        is_entry = (price > sma50) and rsi < 75
+                    elif adx < 15:
+                        # Defensive Mean Reversion
+                        is_entry = (rsi < 25) and (price < row.get('BB_Lower', 0))
+
+                # --- WIS 2.0 (Turbo Scaling) ---
+                hybrid_signal = None
+                ai_score = 0
+                if USE_AI and is_entry:
+                    current_df_slice = df.loc[:current_date]
+                    hybrid_signal, _ = predictor.predict_from_df(current_df_slice)
+                    
+                    if isinstance(hybrid_signal, dict):
+                        neural_dir = hybrid_signal['neural_dir']
+                        rf_prob = hybrid_signal['rf_prob']
+                        
+                        if neural_dir == "DOWN":
+                            is_entry = False
+                        else:
+                            ai_score = rf_prob + (0.5 if neural_dir == "UP" else 0)
+                    else:
+                        is_entry = False
+
+                daily_candidates.append({
+                    'ticker': ticker,
+                    'ai_score': ai_score,
+                    'price': price,
+                    'is_entry': is_entry,
+                    'is_exit': is_exit,
+                    'hybrid_signal': hybrid_signal
+                })
+        
+        # Mark to Market & Update High Water
         portfolio_value = capital
         for t, p in portfolio.items():
             if t in last_known_prices:
-                portfolio_value += p['shares'] * last_known_prices[t]
+                price = last_known_prices[t]
+                portfolio_value += p['shares'] * price
+                portfolio[t]['high_water'] = max(portfolio[t]['high_water'], price)
         
-        # B. Execute Exits (Safety First)
-        # Only execute if market was open today (cand exists)
+        # Execute Exits
         for cand in daily_candidates:
             ticker = cand['ticker']
             if ticker in portfolio and cand['is_exit']:
-                # SELL
                 shares = portfolio[ticker]['shares']
                 proceeds = shares * cand['price']
                 profit = proceeds - (shares * portfolio[ticker]['entry_price'])
                 capital += proceeds
-                
                 trades.append({
-                    'date': current_date,
-                    'action': 'SELL',
-                    'ticker': ticker,
-                    'price': cand['price'],
-                    'profit': profit
+                    'date': current_date, 'action': 'SELL',
+                    'ticker': ticker, 'price': cand['price'], 'profit': profit
                 })
                 del portfolio[ticker]
-                # print(f"{current_date.date()} [SELL] {ticker} Gain: {profit:.2f}")
-
-        # C. Execute Entries (Ranked)
-        # 1. Sort Candidates by ADX (Strongest First)
-        daily_candidates.sort(key=lambda x: x['adx'], reverse=True)
+                reentry_guard[ticker] = current_date
+        # Execute Entries
+        daily_candidates.sort(key=lambda x: x['ai_score'], reverse=True)
+        top_N = [c['ticker'] for c in daily_candidates[:MAX_POSITIONS]]
         
-        # 2. Identify Top 3
-        top_3 = [c['ticker'] for c in daily_candidates[:3]]
-        
-        # 3. Buy if Eligible
         for cand in daily_candidates:
             ticker = cand['ticker']
-            
-            # Must be in Top 3 AND Signal is Entry
-            if cand['is_entry'] and ticker in top_3:
-                # Check if we have slots
+            if cand['is_entry'] and ticker in top_N:
                 if len(portfolio) < MAX_POSITIONS and ticker not in portfolio:
-                    # BUY
-                    # Allocation Size
-                    # Use last_known_prices for Portfolio Value
-                    current_equity = capital + sum(p['shares']*last_known_prices[p_ticker] for p_ticker, p in portfolio.items() if p_ticker in last_known_prices)
-                    max_invest = current_equity * ALLOCATION_PER_TRADE
+                    # Dynamic Allocation (WIS 2.0 Turbo)
+                    current_equity = capital + sum(p['shares']*last_known_prices[pt] for pt, p in portfolio.items() if pt in last_known_prices)
+                    
+                    # DEFAULT: 30%
+                    scaling = 1.0
+                    
+                    if isinstance(cand['hybrid_signal'], dict):
+                        h = cand['hybrid_signal']
+                        # TURBO MODE: 1.5x (45% capital)
+                        if h['neural_dir'] == "UP" and h['rf_prob'] > 0.75:
+                            scaling = 1.5
+                        # LEAN MODE: 0.5x (15% capital)
+                        elif h['neural_dir'] == "NEUTRAL":
+                            scaling = 0.5
+                    
+                    max_invest = current_equity * ALLOCATION_PER_TRADE * scaling
                     invest_amount = min(capital, max_invest)
                     
-                    if invest_amount > 100: # Min trade
+                    if invest_amount > 100:
                         shares = invest_amount / cand['price']
                         capital -= invest_amount
-                        
                         portfolio[ticker] = {
-                            'shares': shares,
-                            'entry_price': cand['price']
+                            'shares': shares, 
+                            'entry_price': cand['price'],
+                            'high_water': cand['price']
                         }
                         trades.append({
-                            'date': current_date,
-                            'action': 'BUY',
-                            'ticker': ticker,
-                            'price': cand['price'],
-                            'amount': invest_amount
+                            'date': current_date, 'action': 'BUY',
+                            'ticker': ticker, 'price': cand['price'], 'amount': invest_amount
                         })
 
-        # D. Record History
-        # (calculated above in loop step A, but let's recalc to be sure after trades)
-        equity_end_of_day = capital
-        for t, p in portfolio.items():
-            if t in last_known_prices:
-                equity_end_of_day += p['shares'] * last_known_prices[t]
-        
-        history.append({
-            'date': current_date,
-            'equity': equity_end_of_day
-        })
+        # Record History
+        equity_eod = capital + sum(p['shares']*last_known_prices[pt] for pt, p in portfolio.items() if pt in last_known_prices)
+        history.append({'date': current_date, 'equity': equity_eod})
 
-    # 5. Final Detailed Report
+    # Final Report Generation
     final_equity = history[-1]['equity']
     total_return = (final_equity - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100
+    history_df = pd.DataFrame(history)
+    history_df['year'] = history_df['date'].apply(lambda x: x.year)
     
-    # Group Trades by Year
     trades_by_year = {}
     for t in trades:
         y = t['date'].year
         if y not in trades_by_year: trades_by_year[y] = []
         trades_by_year[y].append(t)
         
-    # Yearly Stats
-    yearly_stats = {}
-    current_equity_cursor = INITIAL_CAPITAL
-    
-    # We need equity at start/end of each year
-    # history is list of {date, equity}
-    history_df = pd.DataFrame(history)
-    history_df['year'] = history_df['date'].apply(lambda x: x.year)
-    
-    report_lines = []
-    report_lines.append("# BÁO CÁO CHI TIẾT GIAO DỊCH (2014-2026)")
-    report_lines.append(f"**Vốn Ban Đầu:** ${INITIAL_CAPITAL:,.2f}")
-    report_lines.append(f"**Vốn Cuối Cùng:** ${final_equity:,.2f}")
-    report_lines.append(f"**Tổng Lợi Nhuận:** {total_return:.2f}%")
-    report_lines.append("---")
+    report_lines = [
+        "# BÁO CÁO CHI TIẾT GIAO DỊCH AEGIS TURBO (MAX PROFIT)",
+        f"**Vốn Ban Đầu:** ${INITIAL_CAPITAL:,.2f}",
+        f"**Vốn Cuối Cùng:** ${final_equity:,.2f}",
+        f"**Tổng Lợi Nhuận:** {total_return:.2f}%",
+        "---"
+    ]
     
     for year in sorted(list(set(history_df['year']))):
         year_data = history_df[history_df['year'] == year]
         if year_data.empty: continue
-        
         start_eq = year_data.iloc[0]['equity']
         end_eq = year_data.iloc[-1]['equity']
         profit = end_eq - start_eq
         ret_pct = (profit / start_eq) * 100
         
-        # Max Drawdown this year
         eq_curve = year_data['equity'].values
-        run_max = np.maximum.accumulate(eq_curve)
-        dd = (eq_curve - run_max) / run_max * 100
-        mdd = np.min(dd)
+        mdd = np.min((eq_curve - np.maximum.accumulate(eq_curve)) / np.maximum.accumulate(eq_curve) * 100)
         
-        # Trade Stats
         y_trades = trades_by_year.get(year, [])
         wins = [t for t in y_trades if t['action'] == 'SELL' and t['profit'] > 0]
         losses = [t for t in y_trades if t['action'] == 'SELL' and t['profit'] <= 0]
@@ -293,11 +259,8 @@ def main():
         win_rate = (len(wins)/count*100) if count > 0 else 0
         
         report_lines.append(f"## NĂM {year}")
-        report_lines.append(f"- **Lợi Nhuận:** ${profit:,.2f} ({ret_pct:+.2f}%)")
-        report_lines.append(f"- **Vốn Cuối Năm:** ${end_eq:,.2f}")
-        report_lines.append(f"- **Max Drawdown:** {mdd:.2f}%")
-        report_lines.append(f"- **Số Lệnh:** {count} (Thắng: {len(wins)} | Thua: {len(losses)})")
-        report_lines.append(f"- **Tỉ Lệ Thắng:** {win_rate:.2f}%")
+        report_lines.append(f"- **Lợi Nhuận:** ${profit:,.2f} ({ret_pct:+.2f}%) | **Vốn:** ${end_eq:,.2f}")
+        report_lines.append(f"- **Drawdown:** {mdd:.2f}% | **Lệnh:** {count} (Thắng: {len(wins)} | Thua: {len(losses)}) | **WinRate:** {win_rate:.2f}%")
         
         if count > 0:
             report_lines.append("\n| Ngày | Mã | Hành Động | Giá | PnL ($) |")
@@ -306,22 +269,13 @@ def main():
                 date_str = t['date'].strftime('%Y-%m-%d')
                 pnl = f"${t['profit']:,.2f}" if 'profit' in t else "-"
                 action = t['action']
-                if action == 'SELL':
-                    # Add icon
-                    icon = "✅" if t['profit'] > 0 else "❌"
-                    report_lines.append(f"| {date_str} | **{t['ticker']}** | {action} | ${t['price']:.2f} | {icon} {pnl} |")
-                else:
-                    report_lines.append(f"| {date_str} | {t['ticker']} | {action} | ${t['price']:.2f} | - |")
-        else:
-            report_lines.append("\n*(Không có giao dịch)*")
-            
+                icon = "✅" if ('profit' in t and t['profit'] > 0) else ("❌" if 'profit' in t else "")
+                report_lines.append(f"| {date_str} | **{t['ticker']}** | {action} | ${t['price']:.2f} | {icon} {pnl} |")
         report_lines.append("---\n")
         
-    full_report = "\n".join(report_lines)
-    
     print("Generating DETAILED_REPORT.md...")
     with open("DETAILED_REPORT.md", "w", encoding='utf-8') as f:
-        f.write(full_report)
+        f.write("\n".join(report_lines))
     print("Done.")
 
 if __name__ == "__main__":

@@ -6,30 +6,39 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
 import joblib
+import sys
 import os
+
+# Add project root to sys.path for standalone imports
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
+
+from src.intelligence.neural_predictor import NeuralPredictor
 
 class PricePredictor:
     """
-    AI Module that predicts next-day price direction using Random Forest.
-    Features: RSI, ADX, SMA_Diff, Volume_Change, Pct_Change.
-    Target: 1 if Next_Close > Current_Close else 0.
+    AI Module that predicts next-day price direction.
+    Supports Dual-Engine: 
+    - Random Forest (Legacy Ensemble)
+    - Transformer (Neural Intelligence)
     """
     
-    def __init__(self, model_path="data/models/price_predictor.pkl"):
+    def __init__(self, mode="neural", model_path="data/models/price_predictor.pkl"):
+        self.mode = mode # "neural" or "rf"
         self.model_path = model_path
         self.model = None
+        self.neural_engine = NeuralPredictor()
         self.tickers = ['BTC-USD', 'ETH-USD', 'NVDA', 'TSLA', 'AAPL', 'GC=F']
         
         # Create dir if not exists
         os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
         
-        # Load existing model if available
-        if os.path.exists(self.model_path):
+        # Load legacy model if in RF mode
+        if self.mode == "rf" and os.path.exists(self.model_path):
             try:
                 self.model = joblib.load(self.model_path)
-                print(f"  [AI] Loaded existing model from {self.model_path}")
+                print(f"  [AI] Loaded Legacy RF model from {self.model_path}")
             except:
-                print("  [AI] Model file corrupt or incompatible. Will retrain.")
+                print("  [AI] RF model file corrupt. Will need retrain.")
 
     def fetch_data(self, ticker, days=2000):
         """Fetches historical data for training."""
@@ -90,102 +99,84 @@ class PricePredictor:
         return df
 
     def train_model(self):
-        """Trains the Random Forest model on all tracked tickers."""
-        print("  [AI] Starting training protocol...")
+        """Trains either RF or Neural model depending on mode."""
+        print(f"  [AI] Starting training protocol in {self.mode.upper()} mode...")
         
         all_data = []
-        
         for ticker in self.tickers:
-            print(f"    - Fetching training data for {ticker}...")
             df = self.fetch_data(ticker)
             df = self.prepare_features(df)
-            
             if df is not None:
-                # Add Ticker ID via One-Hot or just ignore (general model)
-                # For simplicity, we train a General Market Model
                 all_data.append(df)
         
         if not all_data:
-            print("  [AI] No data collected. Training aborted.")
+            print("  [AI] No data. Training aborted.")
             return
-            
-        full_df = pd.concat(all_data)
-        
-        # Select Features
-        features = ['RSI', 'Dist_SMA10', 'Dist_SMA50', 'Dist_SMA200', 'Volatility', 'Returns']
-        X = full_df[features]
-        y = full_df['Target']
-        
-        # Split
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, shuffle=False)
-        
-        # Train
-        self.model = RandomForestClassifier(n_estimators=100, min_samples_split=10, random_state=42)
-        self.model.fit(X_train, y_train)
-        
-        # Evaluate
-        preds = self.model.predict(X_test)
-        acc = accuracy_score(y_test, preds)
-        
-        print(f"  [AI] Training Complete. Accuracy: {acc:.2%}")
-        # print(classification_report(y_test, preds))
-        
-        # Save
-        joblib.dump(self.model, self.model_path)
-        print(f"  [AI] Model saved to {self.model_path}")
+
+        if self.mode == "neural":
+            self.neural_engine.train(all_data)
+        else:
+            # Legacy RF training
+            full_df = pd.concat(all_data)
+            features = ['RSI', 'Dist_SMA10', 'Dist_SMA50', 'Dist_SMA200', 'Volatility', 'Returns']
+            X = full_df[features]
+            y = full_df['Target']
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, shuffle=False)
+            self.model = RandomForestClassifier(n_estimators=100, min_samples_split=10, random_state=42)
+            self.model.fit(X_train, y_train)
+            joblib.dump(self.model, self.model_path)
+            print("  [AI] Legacy RF training complete.")
 
     def predict(self, ticker):
-        """Predicts tomorrow's movement for a specific ticker."""
-        if self.model is None:
-            # Try load if not loaded
-            if os.path.exists(self.model_path):
-                 try:
-                     self.model = joblib.load(self.model_path)
-                 except:
-                     print(f"  [AI Debug] Failed to load model for {ticker}")
-                     return "ERROR", 0.0
-            else:
-                 print(f"  [AI Debug] Model path not found for {ticker}")
-                 return "ERROR", 0.0
-                 
-        # print(f"  [AI Debug] Fetching data for {ticker}...")
-        df = self.fetch_data(ticker, days=400) # Need enough for SMA200
+        """Predicts tomorrow's movement for a specific ticker (Fetches data)."""
+        df = self.fetch_data(ticker, days=400)
+        df_feats = self.prepare_features(df)
+        return self.predict_from_df(df_feats)
+
+    def predict_from_df(self, df_raw):
+        """Predicts tomorrow's movement using a raw DataFrame slice."""
+        df_feats = self.prepare_features(df_raw)
         
-        if df is None:
-             print(f"  [AI Debug] Data fetch returned None for {ticker}")
-             return "ERROR", 0.0
-             
-        # print(f"  [AI Debug] Preparing features for {ticker} (Rows: {len(df)})...")
-        df = self.prepare_features(df)
-        
-        if df is None or df.empty:
-            print(f"  [AI Debug] Features prep returned empty for {ticker}")
+        if df_feats is None or df_feats.empty:
             return "ERROR", 0.0
-            
-        # Get last row features
-        features = ['RSI', 'Dist_SMA10', 'Dist_SMA50', 'Dist_SMA200', 'Volatility', 'Returns']
-        try:
-            # Check if features exist
-            missing = [f for f in features if f not in df.columns]
-            if missing:
-                print(f"  [AI Debug] Missing columns: {missing}")
-                return "ERROR", 0.0
-                
-            last_row = df.iloc[[-1]][features]
-            # print(f"  [AI Debug] Last row features: {last_row.values}")
-            
+
+        if self.mode == "hybrid":
+            return self.predict_hybrid(df_feats)
+        elif self.mode == "neural":
+            return self.neural_engine.predict(df_feats)
+        else:
+            # Legacy RF prediction logic
+            if self.model is None: return "ERROR", 0.0
+            features = ['RSI', 'Dist_SMA10', 'Dist_SMA50', 'Dist_SMA200', 'Volatility', 'Returns']
+            last_row = df_feats.iloc[[-1]][features]
             prediction = self.model.predict(last_row)[0]
             prob = self.model.predict_proba(last_row)[0]
-            
-            # prob[1] is probability of class 1 (UP)
-            confidence = prob[1]
-            
-            direction = "UP" if prediction == 1 else "DOWN"
-            
-            return direction, confidence
-        except Exception as e:
-            print(f"Prediction error for {ticker}: {e}")
-            return "ERROR", 0.0
+            return ("UP" if prediction == 1 else "DOWN"), prob[1]
+
+    def predict_hybrid(self, df_feats):
+        """Synthesizes signals from both RF and Neural engines (WIS Protocol)."""
+        # 1. Neural Signal
+        neural_dir, neural_prob = self.neural_engine.predict(df_feats)
+        
+        # 2. RF Signal
+        if self.model is None:
+             # Try load 
+             if os.path.exists(self.model_path): self.model = joblib.load(self.model_path)
+        
+        if self.model is None: return neural_dir, neural_prob
+        
+        features = ['RSI', 'Dist_SMA10', 'Dist_SMA50', 'Dist_SMA200', 'Volatility', 'Returns']
+        last_row = df_feats.iloc[[-1]][features]
+        rf_prediction = self.model.predict(last_row)[0]
+        rf_prob = self.model.predict_proba(last_row)[0][1]
+        rf_dir = "UP" if rf_prediction == 1 else "DOWN"
+        
+        return {
+            'rf_dir': rf_dir,
+            'rf_prob': rf_prob,
+            'neural_dir': neural_dir,
+            'neural_prob': neural_prob
+        }, 1.0 # Return dict in signal slot
 
 if __name__ == "__main__":
     # Test Run
