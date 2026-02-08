@@ -12,6 +12,8 @@ from src.delivery.discord_webhook import send_alert, send_heartbeat
 from src.database import db_setup, models
 from src.infrastructure.monitor import InfrastructureMonitor
 from src.delivery.broker_api import BrokerAPI
+from src.simulation.data_loader import DataLoader
+from src.intelligence.asset_selector import AssetSelector
 
 def process_alerts(phoenix_instance=None):
     db = db_setup.SessionLocal()
@@ -179,31 +181,24 @@ def main():
 from src.delivery.broker_api import BrokerAPI
 from src.strategy.trend_hunter import TrendHunterStrategy
 
-# WHITELIST for Trend Hunter (Long-Only)
-TREND_WHITELIST = [
-    'BTC-USD', # Crypto (High Conviction)
-    'ETH-USD', # Crypto (High Beta)
-    'GC=F',    # Gold (Safe Haven)
-    'CL=F',    # Crude Oil (Commodity)
-    'NVDA',    # Tech Stock (Growth)
-    'TSLA',    # Tech Stock (Volatile)
-    'AMZN',    # Tech Stock (Recovery)
-    'AAPL',    # Tech Stock (Steady)
-    'MSFT',    # Tech Stock (Steady)
-    'GOOGL'    # Tech Stock (Steady)
+# DAD Broad Universe (Phase 9)
+BROAD_UNIVERSE = [
+    'BTC-USD', 'ETH-USD', 'SOL-USD', 'DOGE-USD', 'LINK-USD',
+    'NVDA', 'TSLA', 'AMZN', 'AAPL', 'MSFT', 'AMD', 'MSTR', 'GOOGL', 'META',
+    'GC=F', 'CL=F'
 ]
 
-def process_technical_analysis(trend_strategy, mean_reversion_strategy, broker):
+def process_technical_analysis(trend_strategy, mean_reversion_strategy, broker, tickers):
     """
     Checks for signals on whitelisted assets.
     Dynamically switches between Trend Hunter (Trending) and Mean Reversion (Sideways).
     """
-    print(f"\n[{datetime.datetime.now().strftime('%H:%M:%S')}] 🔍 Scanning {len(TREND_WHITELIST)} assets (Multi-Strategy Mode)...")
+    print(f"\n[{datetime.datetime.now().strftime('%H:%M:%S')}] 🔍 Scanning {len(tickers)} assets (DAD Mode)...")
     
     candidates = []
     
     # 1. Scan All Assets
-    for ticker in TREND_WHITELIST:
+    for ticker in tickers:
         try:
             # First, we need to know the MARKET REGIME (ADX)
             # We can use trend_strategy to get common indicators first
@@ -359,10 +354,17 @@ if __name__ == "__main__":
     guardian_for_phoenix = Guardian() 
     phoenix = Phoenix(guardian_for_phoenix)
     
+    # Initialize DAD (Phase 9)
+    loader = DataLoader()
+    selector = AssetSelector(broad_universe=BROAD_UNIVERSE)
+    active_tickers = BROAD_UNIVERSE[:5] # Default
+    
     # Run Morning Routine
     phoenix.morning_routine()
     
     last_cleanup_day = datetime.datetime.now().day
+    last_dad_update_time = 0
+    DAD_UPDATE_INTERVAL = 86400 # 24 Hours
     
     # Heartbeat Setup (Phase 35)
     last_heartbeat_time = time.time()
@@ -387,9 +389,24 @@ if __name__ == "__main__":
         process_alerts(phoenix) 
         scanned_news_count += 50
         
-        # 2. Process Technical Trends (Every 4 hours)
+        # 2. Update DAD Alpha Rotation (Every 24 hours)
+        if time.time() - last_dad_update_time > DAD_UPDATE_INTERVAL:
+            print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] 🛰️ Rotating Alpha Universe...")
+            data_map = {}
+            for t in BROAD_UNIVERSE:
+                df = loader.fetch_data(t, (datetime.datetime.now() - datetime.timedelta(days=60)).strftime("%Y-%m-%d"), datetime.datetime.now().strftime("%Y-%m-%d"))
+                if df is not None:
+                    data_map[t] = df
+            
+            new_active = selector.get_top_alpha(data_map, datetime.datetime.now(), top_n=5)
+            if new_active:
+                active_tickers = new_active
+                print(f"  [DAD] New Alpha Leaders: {active_tickers}")
+            last_dad_update_time = time.time()
+
+        # 3. Process Technical Trends (Every 4 hours)
         if time.time() - last_trend_check > TREND_INTERVAL:
-            process_technical_analysis(trend_hunter, mean_reversion, broker)
+            process_technical_analysis(trend_hunter, mean_reversion, broker, active_tickers)
             last_trend_check = time.time()
         
         # 3. Check Heartbeat
