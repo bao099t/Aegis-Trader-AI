@@ -12,8 +12,8 @@ from src.simulation.strategy import DailySurferStrategy
 
 def main():
     print("=========================================")
-    print("    PORTFOLIO SIMULATION (HYBRID TURBO TEST)    ")
-    print("      Trend Hunter (>20) + Mean Reversion (<20)      ")
+    print("    PORTFOLIO SIMULATION (HYBRID ARSENAL TEST)    ")
+    print("      Trend Hunter (>25) + Mean Reversion (<20)      ")
     print("           (2014 - 2026)                 ")
     print("=========================================")
     
