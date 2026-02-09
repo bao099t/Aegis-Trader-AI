@@ -27,6 +27,17 @@ class InfrastructureMonitor:
         with open(self.state_file, "w") as f:
             json.dump(stat, f, indent=4)
             
+    def log_trades(self, active_trades):
+        """
+        Records active trades for the dashboard.
+        """
+        trades_file = os.path.join(os.path.dirname(self.state_file), "active_trades.json")
+        try:
+            with open(trades_file, "w") as f:
+                json.dump(active_trades, f, indent=4)
+        except Exception as e:
+            print(f"[Mon] Failed to log trades: {e}")
+
     def get_status(self):
         """Reads current health status from the state file."""
         if not os.path.exists(self.state_file):

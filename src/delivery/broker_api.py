@@ -2,53 +2,41 @@ import os
 import json
 import time
 
+from src.delivery.exchange_adapter import SimulatedExchange, CCXTExchange
+
 class BrokerAPI:
     """
-    Simulation/Alpha Connector for Automated Execution.
-    In a real scenario, this would use Alpaca-trade-api or similar.
-    We are implementing a 'Safe Execution Layer' for Paper Trading.
+    Advanced Broker Controller for Aegis Evolution (Phase 43).
+    Supports multiple exchange adapters and multi-market execution.
     """
-    def __init__(self, simulation_mode=True):
+    def __init__(self, simulation_mode=True, exchange_id=None, api_key=None, secret=None):
         self.simulation_mode = simulation_mode
-        self.orders_log = "data/broker_orders.json"
-        self._ensure_log()
-
-    def _ensure_log(self):
-        os.makedirs(os.path.dirname(self.orders_log), exist_ok=True)
-        if not os.path.exists(self.orders_log):
-            with open(self.orders_log, "w") as f:
-                json.dump([], f)
+        if simulation_mode:
+            self.adapter = SimulatedExchange()
+        else:
+            self.adapter = CCXTExchange(exchange_id, api_key, secret)
 
     def place_order(self, ticker, direction, size_pct, entry_price, stop_loss):
         """
-        Simulates/Executes an order placement.
+        Executes an order (BUY_LONG, SELL_SHORT, etc.) via the selected adapter.
         """
-        order = {
-            "order_id": f"ORD_{int(time.time())}",
-            "ticker": ticker,
-            "direction": direction,
-            "size": f"{size_pct:.2f}%",
-            "entry_price": entry_price,
-            "stop_loss": stop_loss,
-            "status": "EXECUTED" if self.simulation_mode else "PENDING",
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-        }
+        # --- Institutional Pre-Trade Check (Phase 43.3) ---
+        # Note: In a full SOR implementation, we'd check spread here.
         
-        # Load and append
-        with open(self.orders_log, "r") as f:
-            orders = json.load(f)
+        print(f"  [Broker] Routing {direction} order for {ticker} (Size: {size_pct:.2f}%)...")
         
-        orders.append(order)
+        order = self.adapter.place_order(ticker, direction, size_pct, entry_price, stop_loss)
         
-        with open(self.orders_log, "w") as f:
-            json.dump(orders, f, indent=4)
-            
-        print(f"  [Broker] {order['status']}: {direction} {ticker} at ${entry_price} | SL: ${stop_loss}")
+        if order:
+            print(f"  [Broker] {order['status']}: {direction} {ticker} at ${entry_price}")
         return order
 
     def get_active_orders(self):
-        with open(self.orders_log, "r") as f:
-            return json.load(f)
+        if hasattr(self.adapter, 'log_path'):
+             with open(self.adapter.log_path, "r") as f:
+                import json
+                return json.load(f)
+        return []
 
 if __name__ == "__main__":
     broker = BrokerAPI()

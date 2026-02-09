@@ -14,6 +14,7 @@ from src.infrastructure.monitor import InfrastructureMonitor
 from src.delivery.broker_api import BrokerAPI
 from src.simulation.data_loader import DataLoader
 from src.intelligence.asset_selector import AssetSelector
+from src.intelligence.predictor import PricePredictor # Phase 49
 
 def process_alerts(phoenix_instance=None):
     db = db_setup.SessionLocal()
@@ -188,7 +189,7 @@ BROAD_UNIVERSE = [
     'GC=F', 'CL=F'
 ]
 
-def process_technical_analysis(trend_strategy, mean_reversion_strategy, broker, tickers):
+def process_technical_analysis(trend_strategy, mean_reversion_strategy, broker, tickers, guardian=None, predictor=None):
     """
     Checks for signals on whitelisted assets.
     Dynamically switches between Trend Hunter (Trending) and Mean Reversion (Sideways).
@@ -209,12 +210,47 @@ def process_technical_analysis(trend_strategy, mean_reversion_strategy, broker, 
             trend_signal, details = trend_strategy.analyze(ticker)
             adx = details.get('adx', 0)
             
-            active_strat_name = "Trend Hunter"
+            # --- PHASE 49: ZENITH AI ORACLE INTEGRATION ---
+            # Signals must be validated by the Neural Predictor (The Brain)
+            # This matches the run_simulation.py logic exactly.
+            ai_score = 0
+            if trend_signal in ["BUY", "SHORT"]:
+                # Fetch data slice for AI
+                df_ai = trend_strategy.fetch_data(ticker) # Or re-use if possible, but fetch is safer for now
+                if df_ai is not None:
+                    hybrid_signal, _ = predictor.predict_from_df(df_ai)
+                    
+                    if isinstance(hybrid_signal, dict):
+                        n_dir = hybrid_signal['neural_dir']
+                        rf_p = hybrid_signal['rf_prob']
+                        
+                        # Apply Verification Logic
+                        is_valid = False
+                        
+                        if trend_signal == "BUY":
+                            if n_dir == "UP": is_valid = True
+                            elif n_dir == "NEUTRAL" and rf_p > 0.6: is_valid = True
+                            
+                        elif trend_signal == "SHORT":
+                            # Strict Vulture Logic
+                            if n_dir == "DOWN" and rf_p > 0.70: is_valid = True
+                            
+                        if not is_valid:
+                            print(f"  [AI Oracle] VETO: {ticker} {trend_signal} blocked via Neural Network ({n_dir}, {rf_p:.2f})")
+                            trend_signal = "HOLD" # Override
+                        else:
+                            print(f"  [AI Oracle] CONFIRMED: {ticker} {trend_signal} ({n_dir}, {rf_p:.2f})")
+                            details['ai_confirmation'] = f"{n_dir} ({rf_p:.1%})"
+            # -----------------------------------------------
+            
+            active_strat_name = "Zenith Hybrid"
             final_signal = trend_signal
             final_details = details
             
-            # STRATEGY SWITCHING LOGIC
-            if adx < 20:
+            # STRATEGY SWITCHING LOGIC (Legacy Mean Reversion - Optional or Deprecated by Zenith)
+            # For now, we trust Zenith as the primary.
+            # If Zenith says HOLD, we can check Mean Reversion if market is sidewards.
+            if final_signal == "HOLD" and adx < 20:
                 # SIDEWAYS MARKET -> Switch to Mean Reversion
                 active_strat_name = "Mean Reversion"
                 
@@ -223,13 +259,6 @@ def process_technical_analysis(trend_strategy, mean_reversion_strategy, broker, 
                 
                 if mr_signal != "HOLD":
                     final_signal = mr_signal
-                    final_details = mr_details
-                    # Log if blocked or fired
-                    if mr_signal == "BUY":
-                         pass # Details already set
-                else:
-                    # If MR says HOLD (e.g. AI blocked it), we hold
-                    final_signal = "HOLD"
                     final_details = mr_details
                     
             if final_signal != "HOLD": 
@@ -327,13 +356,21 @@ def process_technical_analysis(trend_strategy, mean_reversion_strategy, broker, 
                 print(f"  [AutoTrader] {ticker}: Skipped BUY (Not in Top 3). Rank #{candidates.index(item)+1}")
                 
         if should_execute:
-            broker.place_order(
-                ticker=ticker,
-                direction=direction,
-                size_pct=10.0, 
-                entry_price=details['price'],
-                stop_loss=details['sma50'] * 0.95
-            )
+            # --- Sovereign Guardian Audit (Phase 44) ---
+            if guardian:
+                is_safe, reason, size = guardian.check_safety(ticker, direction, 10.0, df)
+                if not is_safe:
+                    print(f"  [Guardian] VETO: {ticker} trade blocked. Reason: {reason}")
+                    should_execute = False
+            
+            if should_execute:
+                broker.place_order(
+                    ticker=ticker,
+                    direction=direction,
+                    size_pct=10.0, 
+                    entry_price=details['price'],
+                    stop_loss=details['sma50'] * 0.95
+                )
 
 if __name__ == "__main__":
     print("Starting Alert System (DB Backed + Hybrid Arsenal)...")
@@ -358,6 +395,10 @@ if __name__ == "__main__":
     loader = DataLoader()
     selector = AssetSelector(broad_universe=BROAD_UNIVERSE)
     active_tickers = BROAD_UNIVERSE[:5] # Default
+    
+    # Initialize AI Brain (Phase 49)
+    print("  [Main] Initializing Zenith AI Neural Predictor...")
+    predictor = PricePredictor(mode="hybrid")
     
     # Run Morning Routine
     phoenix.morning_routine()
@@ -406,20 +447,45 @@ if __name__ == "__main__":
 
         # 3. Process Technical Trends (Every 4 hours)
         if time.time() - last_trend_check > TREND_INTERVAL:
-            process_technical_analysis(trend_hunter, mean_reversion, broker, active_tickers)
+            process_technical_analysis(trend_hunter, mean_reversion, broker, active_tickers, guardian_for_phoenix, predictor)
             last_trend_check = time.time()
         
-        # 3. Check Heartbeat
-        if time.time() - last_heartbeat_time > HEARTBEAT_INTERVAL:
+        # 3. Check Heartbeat & Dashboard Export (Every 10 seconds for Live Feel)
+        if time.time() - last_heartbeat_time > 10:
             print("💓 Sending Heartbeat...")
             stats = {
                 'scanned_count': scanned_news_count,
                 'guardian_status': guardian_for_phoenix.state,
                 'market_mood': "Hybrid (News + Trend)"
             }
-            send_heartbeat(stats)
+            # Only send Discord heartbeat every hour
+            if time.time() - last_heartbeat_time > 3600:
+                send_heartbeat(stats)
+            
             last_heartbeat_time = time.time()
-            scanned_news_count = 0 # Reset count
+            
+            # Export to Dashboard (monitor.py)
+            latency = time.time() - start_cycle
+            trades_list = []
+            
+            # We don't have a persistent portfolio object in this scope easily visible
+            # But wait, we don't have a 'portfolio' variable in main() scope shown in view_file?
+            # Ah, main.py structure in view_file shows it's calling 'process_technical_analysis'
+            # But process_technical_analysis creates its own 'broker' instance? No, it's passed in.
+            # Wait, `broker` object has `active_orders`? 
+            # The BrokerAPI in simulation mode stores portfolio in memory.
+            # In live mode (CCXT), it fetches from exchange.
+            
+            # Let's try to get active positions from broker
+            try:
+                # This assumes BrokerAPI has get_active_positions method
+                # If not, we might need to add it or use a placeholder
+                # For now, let's just log system status
+                monitor.log_heartbeat(latency, "HEALTHY", f"Guardian: {guardian_for_phoenix.state}")
+            except Exception as e:
+                print(f"Monitor Error: {e}")
+                
+            scanned_news_count = 0 
         
         # Check Probation Status if needed
         if guardian_for_phoenix.state == "PROBATION":

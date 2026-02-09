@@ -1,0 +1,28 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environment Variables
+.env
+
+# Aegis Specific
+data/kill_switch.lock
+data/logs/*
+!data/logs/.keep
+data/cache/*
+!data/cache/.keep
+
+# Project Logs & Brain
+.gemini/
+brain/

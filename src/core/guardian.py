@@ -5,19 +5,21 @@ from src.intelligence.performance_tracker import PerformanceTracker
 import json
 import os
 
+from src.intelligence.anti_manipulation import AntiManipulationFilter
+
 class Guardian:
     """
-    The Sovereign Guardian (Phase 28).
-    Enforces Hard Security Ceilings and Portfolio Circuit Breakers.
-    This module has the final veto power over any trade.
+    The Sovereign Guardian (Evolution Phase 44).
+    Enforces Hard Security Ceilings and AI-Driven Anti-Manipulation Filters.
     """
     
     def __init__(self):
         self.MAX_DAILY_ALERTS = 10
         self.TICKER_COOLDOWN_HOURS = 4
-        self.MAX_DRAWDOWN_LIMIT = 15.0 # Stop system if 15% drawdown reached
-        self.CONSECUTIVE_LOSS_LIMIT = 5 # Stop system if 5 losses in a row
-        self.HARD_CAP_ALLOCATION = 15.0 # Never suggest more than 15% size
+        self.MAX_DRAWDOWN_LIMIT = 15.0 
+        self.CONSECUTIVE_LOSS_LIMIT = 5 
+        self.HARD_CAP_ALLOCATION = 15.0 
+        self.anti_manip = AntiManipulationFilter() # Phase 44
         self.STATE_FILE = "data/guardian_state.json"
         self._load_state()
 
@@ -51,7 +53,7 @@ class Guardian:
         self._save_state()
         print(f"🔥 [Guardian] Circuit Breakers RESET. New Baseline DD: {self.baseline_drawdown}%")
 
-    def check_safety(self, ticker, signal_direction, suggested_size):
+    def check_safety(self, ticker, signal_direction, suggested_size, df=None):
         """
         Runs all safety checks.
         Returns: (is_safe: bool, rejection_reason: str, adjusted_size: float)
@@ -77,7 +79,13 @@ class Guardian:
             if not self._check_ticker_cooldown(db, ticker):
                 return False, f"🛑 GUARDIAN: Cooldown active for {ticker} (4h limit).", 0
                 
-            # 4. Circuit Breakers (Portfolio Health)
+            # 4. AI Anti-Manipulation Filter (Evolution Phase 44)
+            if df is not None:
+                is_manip, score, reason = self.anti_manip.analyze(ticker, df)
+                if is_manip:
+                    return False, f"🛑 GUARDIAN: Anti-Manipulation Veto: {reason}", 0
+
+            # 5. Circuit Breakers (Portfolio Health)
             ok, reason = self._check_circuit_breakers(db)
             if not ok:
                  self.state = "PROBATION"

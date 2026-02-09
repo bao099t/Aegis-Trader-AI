@@ -72,29 +72,31 @@ class DailySurferStrategy:
 
     def generate_signal(self, row):
         """
-        Turbo Mode: Medium Term Trend Surfing.
-        Entry: Price > SMA50 (Ignored SMA200) + ADX > 20
-        Exit: Price < SMA20 (Tight Stop) or RSI > 80 (Overbought)
+        Hyper-Alpha Mode: Dynamic Long/Short Trend Surfing.
+        - Long Entry: Price > SMA50 + ADX > 20
+        - Short Entry: Price < SMA50 + ADX > 20
         """
-        # Ensure sufficient data
         if pd.isna(row['SMA_50']) or pd.isna(row['SMA_20']):
             return "HOLD"
             
         current_price = row['Close']
         sma20 = row['SMA_20']
         sma50 = row['SMA_50']
+        adx = row['ADX']
+        rsi = row['RSI']
         
-        # DEFINITION: Medium Trend
-        is_uptrend = current_price > sma50
-        strong_momentum = row['ADX'] > 20
+        strong_momentum = adx > 20
         
-        # ENTRY LONG
-        if is_uptrend and strong_momentum and row['RSI'] < 70:
+        # 🟢 LONG LOGIC
+        if current_price > sma50 and strong_momentum and rsi < 70:
             return "BUY"
-            
-        # EXIT LOGIC (Tight Trailing Stop)
-        # Exit if Price drops below SMA20 (Fast MA)
         if current_price < sma20:
              return "SELL" # Close Longs
              
+        # 🔴 SHORT LOGIC (Phase 43.2)
+        if current_price < sma50 and strong_momentum and rsi > 30:
+            return "SHORT"
+        if current_price > sma20:
+            return "COVER" # Close Shorts
+            
         return "HOLD"

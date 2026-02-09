@@ -116,27 +116,39 @@ class TrendHunterStrategy:
         rsi = row['RSI']
         adx = row['ADX']
         
-        # Logic: Balanced Trend Hunter (Golden Ratio)
-        # Entry: Price > SMA50 AND Price > SMA200 (Bull Market Confirmed)
-        # Strength: ADX > 25 (Stronger than Turbo to filter noise)
-        # Exit: Price < SMA20 (Fast Stop) - Kept same for safety
+        # Logic: Zenith Hybrid (Trend + Vulture Hedge)
+        # Long Entry: Price > SMA50 (Primary Trend) + Momentum
+        # Short Entry: Price < SMA50 (Bear Regime) + Consolidation (Not Oversold)
         
-        is_uptrend = current_price > sma50 and current_price > sma200
-        strong_trend = adx > 25
+        is_bull_trend = current_price > sma50
+        is_bear_trend = current_price < sma50
+        strong_momentum = adx > 20
         
         signal = "HOLD"
         reason = "Wait"
         
-        # ENTRY
-        if is_uptrend and strong_trend and rsi < 70:
+        # 🟢 LONG LOGIC (Zenith)
+        if is_bull_trend and strong_momentum and rsi < 70:
             signal = "BUY"
-            reason = f"Balanced Uptrend (Price > SMA50/200) + Momentum (ADX {adx:.1f})"
+            reason = f"Zenith Bull (Price > SMA50) + Momentum (ADX {adx:.1f})"
             
-        # EXIT (Fast Trend Broken)
-        if current_price < sma20:
-            signal = "SELL"
-            reason = "Fast Trend Broken (Price < SMA20)"
+        # 🔴 SHORT LOGIC (Vulture - Verified Phase 43.6)
+        # Only short if confirmed Bear Trend AND not oversold (avoiding bear traps)
+        elif is_bear_trend and strong_momentum and rsi > 45:
+            signal = "SHORT"
+            reason = f"Vulture Hedge (Price < SMA50) + Vulture Setup (RSI {rsi:.1f})"
             
+        # 🔵 EXIT LOGIC
+        # Long Exit
+        if signal == "HOLD" and is_bull_trend and current_price < sma20:
+             signal = "SELL"
+             reason = "Trend Broken (Price < SMA20)"
+             
+        # Short Exit (Squeeze Protection)
+        if signal == "HOLD" and is_bear_trend and current_price > sma20:
+             signal = "COVER"
+             reason = "Bear Baseline Broken (Price > SMA20)"
+             
         details = {
             "price": current_price,
             "sma50": sma50,

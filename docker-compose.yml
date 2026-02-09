@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  aegis_zenith_core:
+    build: .
+    container_name: aegis_zenith_core
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./src:/app/src  # Optional: For hot-reloading development
+    # commands: can override if different modes needed (e.g. simulation vs live)
+    command: python src/main.py
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: Future Dashboard Service
+  # aegis_dashboard:
+  #   build: ./dashboard
+  #   ports:
+  #     - "3000:3000"
