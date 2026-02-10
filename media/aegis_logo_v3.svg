@@ -1,0 +1,44 @@
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Rich Gold Solid -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#CA8A04" /> <!-- Dark Gold -->
+      <stop offset="50%" stop-color="#FDE047" /> <!-- Light Gold -->
+      <stop offset="100%" stop-color="#CA8A04" />
+    </linearGradient>
+  </defs>
+
+  <!-- Solid Matte Black Background -->
+  <rect width="800" height="800" fill="#080808" />
+  
+  <!-- Outer Ring (Thin Prestige Line) -->
+  <circle cx="400" cy="400" r="320" fill="none" stroke="url(#gold)" stroke-width="2" opacity="0.5" />
+
+  <!-- The "A" Monogram / Shield Abstract -->
+  <g transform="translate(400, 380) scale(1.2)">
+    <!-- Left Pillar -->
+    <path d="M-60,100 L0,-120" stroke="url(#gold)" stroke-width="8" stroke-linecap="square" />
+    <!-- Right Pillar -->
+    <path d="M60,100 L0,-120" stroke="url(#gold)" stroke-width="1" fill="none" /> <!-- Hairline finish -->
+    <path d="M60,100 L0,-120" stroke="url(#gold)" stroke-width="8" stroke-linecap="square" />
+    
+    <!-- Crossbar (The Bridge) -->
+    <path d="M-30,10 L30,10" stroke="url(#gold)" stroke-width="4" />
+    
+    <!-- Center Jewel/AI Node -->
+    <circle cx="0" cy="-40" r="8" fill="url(#gold)" />
+  </g>
+
+  <!-- Typography: AEGIS (Serif, Wide Tracking) -->
+  <text x="400" y="620" font-family="'Didot', 'Bodoni MT', 'Times New Roman', serif" font-weight="bold" font-size="64" 
+        fill="url(#gold)" text-anchor="middle" letter-spacing="24">
+    AEGIS
+  </text>
+
+  <!-- Subtitle: ZENITH (Sans, Clean) -->
+  <text x="400" y="670" font-family="'Helvetica Neue', 'Arial', sans-serif" font-weight="300" font-size="20" 
+        fill="#888" text-anchor="middle" letter-spacing="12" text-transform="uppercase">
+    QUANTITATIVE ZENITH
+  </text>
+
+</svg>

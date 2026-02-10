@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./media/aegis_trader_logo.png" width="320" alt="Aegis Trader AI Logo">
+  <img src="./media/aegis_logo_v3.svg" width="320" alt="Aegis Trader AI Logo">
   
   # 🛡️ Aegis Trader AI
   ### "The Shield of Your Capital, the Sword of Your Profits"
