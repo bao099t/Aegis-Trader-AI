@@ -107,55 +107,94 @@ class TrendHunterStrategy:
             return "HOLD", {"error": "Insufficient data"}
             
         df = self.calculate_indicators(df)
-        row = df.iloc[-1]
+    # ... (inside analyze method)
         
+        # --- EVOLUTIONARY DNA (Phase 6) ---
+        # Load optimized parameters for this specific ticker
+        from src.intelligence.darwin import Darwin
+        darwin = Darwin()
+        dna = darwin.load_dna(ticker)
+        
+        # Default Params
+        SMA_FAST_LEN = dna.get('sma_fast', 50)
+        RSI_THRESH = dna.get('rsi_threshold', 70)
+        
+        # ... calculation ...
+        # (Need to ensure calculate_indicators supports dynamic SMA? 
+        # Typically indicators are pre-calc for fixed windows. 
+        # For dynamic SMA_50 vs SMA_20, we calculated SMA_50 hardcoded.
+        # If DNA says SMA_100, we need that computed.
+        # Ideally, calculate_indicators should calculate A LOT of indicators or be dynamic.
+        # For now, let's assume we optimized for [20, 50, 100] which are standardly calc'd?
+        # My calculate_indicators does: 20, 50, 200.
+        # So we can map 'sma_fast' to one of those or re-calc on fly.)
+        
+        # Let's simple re-calc the dynamic SMA here for precision
+        sma_dynamic = df['Close'].rolling(window=SMA_FAST_LEN).mean().iloc[-1]
+        
+        row = df.iloc[-1]
         current_price = row['Close']
-        sma20 = row['SMA_20']
-        sma50 = row['SMA_50']
         sma200 = row['SMA_200']
         rsi = row['RSI']
         adx = row['ADX']
+        sma20 = row['SMA_20'] 
         
-        # Logic: Zenith Hybrid (Trend + Vulture Hedge)
-        # Long Entry: Price > SMA50 (Primary Trend) + Momentum
-        # Short Entry: Price < SMA50 (Bear Regime) + Consolidation (Not Oversold)
-        
-        is_bull_trend = current_price > sma50
-        is_bear_trend = current_price < sma50
+        # Update Logic to use Dynamic SMA
+        is_bull_trend = current_price > sma_dynamic
+        is_bear_trend = current_price < sma_dynamic
         strong_momentum = adx > 20
         
         signal = "HOLD"
         reason = "Wait"
         
+        # --- PHASE 9: CIRCUIT BREAKER (Flash Crash Protection) ---
+        # If asset dropped >5% today, FREEZE buying. Do not catch falling knives.
+        daily_return = (current_price - row['Open']) / row['Open']
+        if daily_return < -0.05:
+            reason = f"⛔ CIRCUIT BREAKER Active: Crash Detected ({daily_return:.1%})"
+            # We strictly return HOLD (or SELL if we want to bail, but HOLD prevents entry)
+            # Strategy: Don't Enter. If Holding, maybe let Stop Limit handle it?
+            # Safe bet: Block Entry.
+            details = {
+                "price": current_price,
+                "sma_dynamic": sma_dynamic,
+                "sma200": sma200,
+                "rsi": rsi,
+                "adx": adx,
+                "reason": reason,
+                "dna": dna if dna else "Default"
+            }
+            return "HOLD", details
+        # ---------------------------------------------------------
+        
         # 🟢 LONG LOGIC (Zenith)
-        if is_bull_trend and strong_momentum and rsi < 70:
+        # Use Dynamic RSI Threshold
+        if is_bull_trend and strong_momentum and rsi < RSI_THRESH:
             signal = "BUY"
-            reason = f"Zenith Bull (Price > SMA50) + Momentum (ADX {adx:.1f})"
+            reason = f"Zenith Bull (Price > SMA{SMA_FAST_LEN}) + Momentum + DNA RSI<{RSI_THRESH}"
             
-        # 🔴 SHORT LOGIC (Vulture - Verified Phase 43.6)
-        # Only short if confirmed Bear Trend AND not oversold (avoiding bear traps)
-        elif is_bear_trend and strong_momentum and rsi > 45:
+        # 🔴 SHORT LOGIC (Vulture)
+        elif is_bear_trend and strong_momentum and rsi > 45: # Keep Vulture static for now or evolve later
             signal = "SHORT"
-            reason = f"Vulture Hedge (Price < SMA50) + Vulture Setup (RSI {rsi:.1f})"
+            reason = f"Vulture Hedge (Price < SMA{SMA_FAST_LEN})"
             
         # 🔵 EXIT LOGIC
-        # Long Exit
         if signal == "HOLD" and is_bull_trend and current_price < sma20:
              signal = "SELL"
              reason = "Trend Broken (Price < SMA20)"
              
-        # Short Exit (Squeeze Protection)
         if signal == "HOLD" and is_bear_trend and current_price > sma20:
              signal = "COVER"
              reason = "Bear Baseline Broken (Price > SMA20)"
              
         details = {
             "price": current_price,
-            "sma50": sma50,
+            "sma_dynamic": sma_dynamic,
             "sma200": sma200,
             "rsi": rsi,
             "adx": adx,
-            "reason": reason
+            "reason": reason,
+            "dna": dna if dna else "Default"
         }
         
         return signal, details

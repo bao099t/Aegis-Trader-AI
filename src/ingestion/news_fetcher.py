@@ -52,7 +52,7 @@ def parse_date(entry):
         return datetime.datetime.fromtimestamp(mktime(entry.published_parsed))
     return datetime.datetime.now()
 
-def fetch_and_filter():
+def fetch_and_filter(active_tickers=None):
     nf = NewsFilter()
     analyst = MarketAnalyst()
     targeting = TargetingManager()
@@ -94,7 +94,7 @@ def fetch_and_filter():
         ticker = market_analysis.get('ticker')
         direction = market_analysis.get('direction', 'NEUTRAL')
         
-        priority = targeting.check_priority(ticker)
+        priority = targeting.check_priority(ticker, active_tickers)
         should_alert = targeting.should_alert(ticker, direction, priority)
         
         if priority == 'CRITICAL':

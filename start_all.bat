@@ -3,7 +3,7 @@ title Aegis Zenith Command Center (ALL-IN-ONE)
 color 0a
 
 echo ==========================================================
-echo    AEGIS ZENITH TRADER | INSTITUTIONAL LAUNCHER
+echo    AEGIS ZENITH TRADER ^| INSTITUTIONAL LAUNCHER
 echo ==========================================================
 echo.
 echo [1] Initializing Core Infrastructure (FastAPI)...

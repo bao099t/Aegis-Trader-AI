@@ -55,8 +55,80 @@ class CCXTExchange(BaseExchange):
         if not self.exchange:
             print("  [CCXT] Order Blocked: Exchange not initialized.")
             return None
-        
-        # In production, we would map internal tickers to exchange symbols
-        # and handle market/limit orders via self.exchange.create_order(...)
-        print(f"  [CCXT] (Live Target) Would place {direction} on {ticker}")
-        return {"status": "CCXT_READY", "ticker": ticker, "direction": direction}
+            
+        try:
+            # 1. Map Symbol (Simplistic mapping for now)
+            # Assumption: Internal Tickers are like 'BTC-USD', 'NVDA'
+            # CCXT expects 'BTC/USDT' or 'NVDA/USD' usually.
+            symbol = ticker.replace('-', '/') 
+            if '/' not in symbol and len(symbol) > 4: # Crypto guess
+                 symbol += '/USDT' # Default to USDT pair for crypto
+            
+            # 2. Map Side
+            side = 'buy' if direction == 'BULLISH' else 'sell'
+            
+            # 3. Dynamic Position Sizing (Compound Interest)
+            # Fetch Free Balance (Assuming USDT for Crypto)
+            balance = self.exchange.fetch_free_balance()
+            usdt_bal = balance.get('USDT', balance.get('USD', 0))
+            
+            if usdt_bal < 10: # Minimum execution
+                print(f"  [CCXT] ⚠️ Insufficient Funds (${usdt_bal}). Min $10 required.")
+                return None
+                
+            # Allocation Amount
+            alloc_amount = usdt_bal * (size_pct / 100.0)
+            quantity = alloc_amount / entry_price
+            
+            print(f"  [CCXT] Executing LIVE {side.upper()} on {symbol}")
+            print(f"         Balance: ${usdt_bal:.2f} | Size: {size_pct}% (${alloc_amount:.2f})")
+            print(f"         Qty: {quantity:.6f} @ ${entry_price}")
+            
+            # 4. Execute Limit Order (Safety First)
+            # We use Limit order to avoid slippage.
+            order = self.exchange.create_order(symbol, 'limit', side, quantity, entry_price)
+            
+            # 5. Stop Loss Execution? 
+            # Many exchanges require a separate call for OCO or Stop Market.
+            # For Phase 9, we start with the Entry. Stop Loss is managed by the Shepherd (Exit Logic).
+            
+            print(f"  [CCXT] ✅ Order Success: ID {order['id']}")
+            return order
+            
+        except Exception as e:
+            print(f"  [CCXT] ❌ Execution Failed: {e}")
+            return None
+
+    def fetch_positions(self):
+        """
+        Fetches real-time balances/positions from the exchange.
+        """
+        if not self.exchange:
+            return []
+            
+        try:
+            # 1. Fetch Balance (Spot)
+            # For Futures, we might need fetch_positions()
+            # We try standard balance first.
+            bal = self.exchange.fetch_balance()
+            
+            active_assets = []
+            
+            # Check Non-Zero Total Balance
+            if 'total' in bal:
+                for currency, amount in bal['total'].items():
+                    if amount > 0:
+                        # Normalize Ticker?
+                        # Internal system uses BTC-USD. Exchange has BTC.
+                        # Simple Heuristic: If it's a known crypto, append -USD
+                        # For now, just return raw currency, logic elsewhere can handle fuzzy match if needed.
+                        # Or better: return f"{currency}-USD" check?
+                        # Let's return raw for safety.
+                        active_assets.append(currency)
+            
+            print(f"  [CCXT] Active Positions: {active_assets}")
+            return active_assets
+            
+        except Exception as e:
+            print(f"  [CCXT] Fetch Error: {e}")
+            return []

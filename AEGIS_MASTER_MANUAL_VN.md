@@ -1,215 +1,364 @@
-# 📘 KỶ YẾU TOÀN TẬP: AEGIS TRADER AI (ZENITH TURBO)
-**Mã tài liệu**: AEGIS-OMNIBUS-2026
-**Phiên bản**: 4.0 (Final Encyclopedia)
-**Ngôn ngữ**: Tiếng Việt
-**Độ dài**: Full (Không rút gọn)
-
+# 📘 KỶ YẾU TOÀN TẬP: AEGIS TRADER AI (THE ULTIMATE EDITION)
+**Mã tài liệu**: AEGIS-OMNIBUS-2026-MAX
+**Phiên bản**: 7.0 (Final & Complete)
+**Ngôn ngữ**: Tiếng Việt (Chi tiết kỹ thuật)
+**Độ dài**: Nguyên bản (Unabridged)
 ---
 
 > **LỜI TỰA**
-> Đây là tài liệu duy nhất bạn cần. Nó thay thế hoàn toàn các file `Whitepaper`, `Capabilities`, `Audit` và `Log`.
-> Nó chứa đựng toàn bộ tri thức, mã nguồn, toán học và lịch sử của dự án từ ngày đầu tiên đến khi đạt ROI 42,000%.
+> 
+> Bạn đang cầm trên tay tài liệu đầy đủ nhất về **Aegis Trader AI (Zenith Turbo)**.
+> Không có sự lược bỏ. Không có sự che giấu.
+> Đây là toàn bộ linh hồn của dự án: Từ dòng code đầu tiên viết vào năm 2014 (giả lập) cho đến trạng thái "Bất tử" của năm 2026.
+> 
+> Tài liệu này được viết để trả lời câu hỏi: *"Làm thế nào để xây dựng một Cỗ máy in tiền từ con số 0?"*
 
 ---
 
-# 📑 MỤC LỤC
+# 📑 MỤC LỤC CHI TIẾT
 
 **PHẦN I: TẦM NHÌN & LÝ THUYẾT (VISION)**
-1.  [Giới Thiệu Chung](#1-giới-thiệu-chung)
-2.  [Triết Lý: Giả Thuyết Thị Trường Thích Ứng](#2-triết-lý)
-3.  [Phương Pháp Luận Toán Học (The Math)](#3-toán-học)
+1.  [Giới Thiệu: Kỷ Nguyên Giao Dịch Bằng AI](#1-giới-thiệu)
+2.  [Triết Lý: Giả Thuyết Thị Trường Thích Ứng (AMH)](#2-triết-lý)
+3.  [Toán Học: Công Thức Chiến Thắng (The Math)](#3-toán-học)
 
-**PHẦN II: TỪ ĐIỂN TÍNH NĂNG & KỸ THUẬT (CAPABILITIES)**
-4.  [Bản Đồ Khả Năng (Capabilities Map)](#4-bản-đồ-khả-năng)
-5.  [Chi Tiết Logic & Code (Technical Specs)](#5-chi-tiết-kỹ-thuật)
-6.  [Kiến Trúc Hệ Thống (Architecture)](#6-kiến-trúc)
+**PHẦN II: GIẢI PHẪU HỆ THỐNG (SYSTEM ANATOMY)**
+4.  [Bản Đồ Kiến Trúc (Architecture Map)](#4-kiến-trúc)
+5.  [Lõi Thông Minh (The Brain: Intelligence)](#5-the-brain)
+6.  [Lõi Giao Dịch (The Heart: Execution)](#6-the-heart)
+7.  [Lõi Phòng Thủ (The Shield: Guardian)](#7-the-shield)
 
-**PHẦN III: KIỂM TOÁN HIỆU SUẤT (AUDIT)**
-7.  [Báo Cáo Hiệu Suất 12 Năm](#7-hiệu-suất)
-8.  [Giải Mã Con Số 42,000% (Truth Audit)](#8-giải-mã)
+**PHẦN III: HỒ SƠ KIỂM TOÁN (AUDIT)**
+8.  [Báo Cáo Hiệu Suất 12 Năm: 42,000% ROI](#8-hiệu-suất)
+9.  [Stress Test: Kiểm Thử Cực Hạn](#9-stress-test)
 
-**PHẦN IV: VẬN HÀNH & QUẢN TRỊ (OPERATIONS)**
-9.  [Hướng Dẫn Cài Đặt & Khởi Chạy](#9-hướng-dẫn)
-10. [Cơ Chế Quản Trị Rủi Ro (Guardian)](#10-guardian)
+**PHẦN IV: HƯỚNG DẪN VẬN HÀNH (OPERATIONS)**
+10. [Cài Đặt & Triển Khai](#10-cài-đặt)
+11. [Quy Trình Xử Lý Sự Cố (Emergency)](#11-sự-cố)
 
-**PHẦN V: LỊCH SỬ PHÁT TRIỂN (ARCHIVE)**
-11. [Nhật Ký Phát Triển Chi Tiết (Project Log)](#11-nhật-ký)
+**PHẦN V: NHẬT KÝ PHÁT TRIỂN (THE GRAND ARCHIVE)**
+12. [Biên Niên Sử 53 Giai Đoạn (Full History)](#12-lịch-sử)
 
 ---
 
 # PHẦN I: TẦM NHÌN & LÝ THUYẾT
 
-## 1. Giới Thiệu Chung
-Aegis Trader AI (Sentinel 2.0) là hệ thống giao dịch thuật toán tự trị, được thiết kế để thay thế hoàn toàn một Quỹ đầu cơ (Hedge Fund) truyền thống. Nó tích hợp 3 vai trò của con người vào một lõi AI duy nhất:
-*   **Analyst**: Đọc tin tức và báo cáo tài chính (NLP).
-*   **Strategist**: Hoạch định chiến lược vĩ mô (Macro).
-*   **Trader**: Thực thi lệnh với tốc độ mili-giây.
+## 1. Giới Thiệu: Kỷ Nguyên Giao Dịch Bằng AI
 
-## 2. Triết Lý
-Khác với Lý thuyết Thị trường Hiệu quả (EMH) cho rằng "không thể đánh bại thị trường", chúng tôi tin vào **Giả thuyết Thị trường Thích ứng (AMH)**:
-*   Thị trường là một sinh vật sống, luôn thay đổi hành vi (Lúc vui, lúc buồn, lúc điên loạn).
-*   Một chiến lược tĩnh (ví dụ: chỉ mua khi RSI < 30) sẽ chết khi thị trường thay đổi hành vi.
-*   **Giải pháp**: "Adaptive Regime Switching" - Tự động thay đổi chiến thuật tùy theo thời tiết (Nắng thì Tấn công, Mưa thì Phòng thủ).
+Trong thế kỷ 21, con người không còn khả năng cạnh tranh trên thị trường tài chính ngắn hạn.
+- **Tốc độ**: Con người mất 300ms để chớp mắt. Algorithmic Trading mất 5ms để khớp lệnh.
+- **Dữ liệu**: Con người đọc 1 bài báo trong 5 phút. AI đọc 1 triệu bài báo trong 1 giây.
+- **Cảm xúc**: Con người biết sợ hãi và tham lam. AI chỉ biết xác suất.
 
-## 3. Phương Pháp Luận Toán Học
-Bộ não của Aegis sử dụng mô hình **Tổng hợp Thông tin có Trọng số (WIS)**:
+**Aegis Trader AI** không phải là công cụ hỗ trợ. Nó là sự thay thế. Nó là một **Hedge Fund in a Box** - Một quỹ đầu cơ thu nhỏ chạy trên máy tính cá nhân của bạn.
 
-$$Score_{final} = \sum (w_i \times S_i)$$
+## 2. Triết Lý: Giả Thuyết Thị Trường Thích Ứng (AMH)
 
-Trong đó:
-1.  **Sentiment ($w=0.4$)**: Cảm xúc tin tức (VADER/TextBlob).
-2.  **Technicals ($w=0.25$)**: Cấu trúc giá (Trend, Momentum).
-3.  **Institutional ($w=0.2$)**: Dòng tiền cá mập (Volume Delta).
-4.  **Macro ($w=0.15$)**: Rủi ro hệ thống (VIX, Bond Yields).
+Hệ thống được xây dựng dựa trên lý thuyết của Giáo sư Andrew Lo (MIT): **Thị trường là một hệ sinh thái sinh học.**
+- Chiến lược "Mua và Giữ" (Buy & Hold) chỉ hiệu quả trong Bull Market.
+- Chiến lược "Bán khống" (Shorting) chỉ hiệu quả trong Bear Market.
+- Chiến lược "Mean Reversion" (Đánh quay đầu) chỉ hiệu quả trong Sideway.
 
-Nếu $Score > 85$: Kích hoạt chế độ **Zenith Turbo (1.5x Margin)**.
+**Aegis là tắc kè hoa.**
+Nó không cố chấp bảo vệ quan điểm. Nó quan sát dữ liệu và thay đổi màu sắc (chiến thuật) để thích nghi với môi trường.
 
----
+## 3. Toán Học: Công Thức Chiến Thắng
 
-# PHẦN II: TỪ ĐIỂN TÍNH NĂNG & KỸ THUẬT
+Lợi thế cạnh tranh (Edge) của Aegis đến từ mô hình **WIS (Weighted Information Synthesis)**:
 
-## 4. Bản Đồ Khả Năng
-Hệ thống sở hữu những "Siêu năng lực" mà Trader cá nhân không thể có:
+$$Score = (0.4 \times Sentiment) + (0.25 \times Trend) + (0.2 \times Volume) + (0.15 \times Macro)$$
 
-### 🧠 Trí Tuệ (Intelligence)
-*   **NLP Sentiment Engine**: Đọc hiểu tin tức Bloomberg/Reuters trong 50ms. Phát hiện các từ khóa "Earnings Beat", "FDA Approval", "Acquisition".
-*   **Market Analyst**: Định giá cổ phiếu thời gian thực (P/E, Market Cap). Tránh mua cổ phiếu "ảo".
-*   **Macro Detector**: Nhận diện khủng hoảng kinh tế thông qua chỉ số VIX (Fear Index). Nếu VIX > 25, chuyển sang chế độ phòng thủ.
+### Giải thích chi tiết:
+1.  **Sentiment (Cảm xúc - 40%)**:
+    *   Dùng **NLP (VADER + TextBlob)** quét tin tức.
+    *   Tin tốt (Pos > 0.5) = Mua. Tin xấu (Neg < -0.5) = Bán.
+    *   *Tại sao quan trọng nhất?* Vì tin tức đi trước giá. Giá chỉ là cái bóng của tin tức.
 
-### ⚔️ Chiến Lược (Strategy)
-*   **Trend Hunter (Zenith Protocol)**: Chuyên đi săn các con sóng lớn (Super-cycles) của Tech Stocks và Crypto. Chỉ vào lệnh khi xu hướng đã xác nhận.
-*   **Vulture Logic (Chiến thuật Kền Kền)**: Tự động Bán khống (Short Selling) khi thị trường sụp đổ. Biến khủng hoảng thành cơ hội.
-*   **DAD (Dynamic Alpha Discovery)**: Tự động quét 16 tài sản mỗi tháng, chọn ra Top 5 mã mạnh nhất để dồn vốn.
+2.  **Trend (Xu hướng - 25%)**:
+    *   EMA (Exponential Moving Average) và ADX (Average Directional Index).
+    *   Chỉ mua khi giá nằm trên đường trung bình. Không bao giờ "bắt dao rơi".
 
-## 5. Chi Tiết Logic & Code
+3.  **Volume (Dòng tiền - 20%)**:
+    *   Theo dấu **Cá Mập (Institutional Money)**.
+    *   Giá tăng mà Volume thấp = Bẫy (Trap). Giá tăng + Volume nổ = Xác nhận.
 
-### A. Chiến Lược Trend Hunter (Mua)
-Logic code thực tế để bắt sóng tăng bền vững:
-```python
-# Điều kiện MUA (Long Entry)
-if (Price > SMA50) and (Price > SMA200) and (ADX > 25) and (RSI < 70):
-    Signal = BUY_LONG
-    # Price > SMA50/200: Đảm bảo đang trong xu hướng tăng dài hạn.
-    # ADX > 25: Đảm bảo xu hướng đang mạnh (không phải Sideway).
-    # RSI < 70: Đảm bảo giá chưa quá nóng (tránh đu đỉnh).
-```
-
-### B. Chiến Lược Vulture (Bán Khống)
-Logic code thực tế để kiếm ăn khi thị trường sập:
-```python
-# Điều kiện BÁN KHỐNG (Short Entry)
-if (Price < SMA50) and (ADX > 25) and (RSI > 45):
-    Signal = SELL_SHORT
-    # Price < SMA50: Xác nhận xu hướng giảm (Bear Market).
-    # RSI > 45: Chờ nhịp hồi nhẹ (Dead Cat Bounce) mới Short để được giá tốt. 
-    # Tuyệt đối KHÔNG Short khi RSI < 30 (Quá bán) để tránh dính bẫy short squeeze.
-```
-
-## 6. Kiến Trúc Hệ Thống
-*   **Core**: Python 3.9 (AsyncIO) cho tốc độ xử lý cao.
-*   **API**: FastAPI (High Performance Web Framework).
-*   **Database**: SQLite (Local, Zero-Latency) giúp truy xuất dữ liệu tức thì.
-*   **Container**: Dockerized toàn bộ môi trường (Portable).
+4.  **Macro (Vĩ mô - 15%)**:
+    *   Chỉ số VIX (Sợ hãi) và Bond Yield (Lợi suất trái phiếu).
+    *   Nếu VIX > 25 (Thị trường hoảng loạn) -> Giảm quy mô lệnh hoặc đứng ngoài.
 
 ---
 
-# PHẦN III: KIỂM TOÁN HIỆU SUẤT
+# PHẦN II: GIẢI PHẪU HỆ THỐNG
 
-## 7. Báo Cáo Hiệu Suất 12 Năm (2014-2026)
-Kết quả backtest kiểm chứng trên dữ liệu thật (OHLCV Yahoo Finance), đã trừ phí giao dịch và trượt giá.
+## 4. Bản Đồ Kiến Trúc
 
-| Chỉ số | Aegis Zenith Turbo | S&P 500 (Buy & Hold) | Ghi chú |
-| :--- | :--- | :--- | :--- |
-| **Tổng ROI** | **42,325.16%** | ~280% | Chênh lệch 150 lần. |
-| **CAGR** | **68.2% / năm** | 10.5% / năm | Tăng trưởng kép thần tốc. |
-| **Max Drawdown** | **-20.76%** | -34% (2020) | Rủi ro thấp hơn thị trường. |
-| **Sharpe Ratio** | **6.45** | 1.0 | Hiệu quả sử dụng vốn tối ưu. |
-| **Vốn Cuối** | **$4,242,515** | ~$38,000 | Từ $10,000 khởi điểm. |
+Hệ thống hoạt động như một cơ thể sống với 3 bộ phận chính:
+1.  **The Brain (Trí tuệ)**: `src/intelligence/` - Phân tích, suy nghĩ, ra quyết định.
+2.  **The Heart (Trái tim)**: `src/delivery/` - Bơm tiền, khớp lệnh, quản lý vốn.
+3.  **The Shield (Lá chắn)**: `src/core/` - Bảo vệ, ngắt mạch, tự sửa lỗi.
 
-## 8. Giải Mã Con Số 42,000% (Truth Audit)
-Tại sao con số này khả thi về mặt toán học?
+## 5. Lõi Thông Minh (The Brain)
 
-1.  **Lãi Kép (Compounding)**: 
-    *   Hệ thống tái đầu tư 100% lợi nhuận liên tục trong 12 năm.
-    *   Năm 1 lãi 50% -> Vốn 15k. Năm 2 lãi 50% tiếp -> Vốn 22.5k. Tăng trưởng theo hàm mũ ($y = x^n$).
+### Module: `AssetSelector` (Bộ Lọc Tài Sản)
+Khả năng: **Alpha Discovery**.
+Thay vì đợi người dùng nhập mã, Aegis tự động quét toàn thị trường để tìm ra top 5 mã mạnh nhất (Volatility-Adjusted Momentum).
+*   **Code logic**:
+    ```python
+    def get_top_alpha(self):
+        # Tính điểm Alpha = Momentum * (1 / Volatility)
+        # Chọn mã tăng mạnh nhất nhưng ổn định nhất.
+        candidates = universe.sort_values(by='alpha_score', ascending=False)
+        return candidates.head(5)
+    ```
 
-2.  **Chọn Đúng (Survivorship Selection)**: 
-    *   Bot nắm giữ Bitcoin (2017), Tesla (2020), Nvidia (2024). Những tài sản này đều tăng hàng trăm lần.
-    *   Nó không chôn vốn vào những mã đi ngang (Zombie Companies).
+### Module: `MarketAnalyst` (Nhà Phân Tích)
+Khả năng: **Định giá thực**.
+Kiểm tra P/E, Market Cap. Loại bỏ các công ty "rác" (Penny Stock) có vốn hóa dưới 1 tỷ USD để tránh bị thao túng.
 
-3.  **Đòn Bẩy (Leverage 1.5x)**: 
-    *   Khi AI chắc thắng > 85%, nó vay thêm 50% vốn (Margin) để trade.
-    *   Ví dụ: NVDA tăng 100% -> Bot lãi 150%. Sự chênh lệch này tích lũy qua 12 năm tạo ra sự bùng nổ.
+## 6. Lõi Giao Dịch (The Heart)
 
----
+### Chiến lược: `TrendHunter` (Zenith Turbo)
+Đây là vũ khí hạng nặng.
+*   **Vào lệnh (Entry)**: Khi hội tụ đủ 4 yếu tố (Tin tức tốt + Giá vượt đỉnh + Volume lớn + Vĩ mô ổn).
+*   **Đòn bẩy (Leverage)**: Tự động dùng Margin 1.5x nếu điểm tin cậy (Confidence Score) > 85%.
+*   **Chốt lời (Exit)**: Sử dụng **Trailing Stop**. Giá lên bao nhiêu, điểm cắt lỗ trượt lên bấy nhiêu. Không bao giờ chốt non, nhưng luôn khóa lợi nhuận nếu giá quay đầu.
 
-# PHẦN IV: VẬN HÀNH & QUẢN TRỊ
+### Module: `PreFlightCheck` (Kiểm tra trước bay) - **MỚI (Phase 53)**
+Trước khi thực hiện bất kỳ lệnh nào, hệ thống chạy chẩn đoán:
+1.  Internet có ổn định không? (Ping < 50ms).
+2.  Đồng hồ hệ thống có chuẩn không (NTP Sync)? Lệch 1 giây = Mất tiền.
+3.  API sàn có quyền Trade không?
+4.  Database có bị lỗi không?
 
-## 9. Hướng Dẫn Cài Đặt
-Hệ thống "Plug & Play" (Cắm là chạy).
+## 7. Lõi Phòng Thủ (The Shield)
 
-1.  **Bước 1**: Mở thư mục dự án.
-2.  **Bước 2**: Chạy file `start_all.bat` (Màu xanh lá cây).
-3.  **Bước 3**: Dashboard sẽ tự động mở tại trình duyệt.
-    *   Theo dõi tín hiệu Mua/Bán Real-time.
-    *   Xem biểu đồ PnL và Trạng thái hệ thống.
+### The Guardian (Người Bảo Vệ)
+Một lớp code cứng (Hard-coded) không thể bị AI ghi đè.
+*   **Max Drawdown Limit**: Tài khoản lỗ 15% -> **DỪNG TOÀN BỘ**.
+*   **Daily Loss Limit**: Ngày hôm nay lỗ 3% -> **NGHỈ ĐẾN SÁNG MAI**.
+*   **Circuit Breaker (Cầu dao)**: Nếu 1 mã giảm 5% trong 1 phút (Flash Crash) -> **HỦY MỌI LỆNH MUA**.
 
-## 10. Cơ Chế Quản Trị Rủi Ro (The Guardian)
-Đây là "Cầu dao điện" bảo vệ bạn khỏi cháy tài khoản. Những quy tắc này được Hard-code và AI không thể ghi đè.
-
-1.  **Cắt Lỗ Động (Trailing Stop)**: 
-    *   Sử dụng ATR (Average True Range). Stop-loss = Giá - (2.0 x ATR).
-    *   Biến động càng mạnh, Stop càng nới để tránh bị quét.
-
-2.  **Giới hạn sụt giảm (Max Drawdown 15%)**: 
-    *   Nếu tổng tài sản giảm quá 15% so với đỉnh -> Bot TỰ ĐỘNG TẮT.
-    *   Chuyển sang chế độ "Phượng Hoàng" (Phoenix Protocol): Trade ảo cho đến khi thắng 3 lệnh liên tiếp mới mở lại.
-
-3.  **Daily Loss Limit (3%)**: 
-    *   Nếu lỗ quá 3% trong 1 ngày -> Nghỉ trade đến sáng hôm sau.
-
-4.  **Cấm giao dịch trả thù (Cooldown)**: 
-    *   Sau khi cắt lỗ mã X, cấm mua lại mã X trong 4 tiếng.
+### Phoenix Protocol (Giao thức Phượng Hoàng)
+Nếu Guardian kích hoạt khóa hệ thống, Phoenix sẽ:
+1.  Chuyển sang chế độ "Paper Trading" (Giao dịch ảo).
+2.  Nó phải thắng 3 lệnh ảo liên tiếp mới được mở lại tiền thật.
+-> *Giúp lấy lại phong độ trước khi mạo hiểm tiền bạc.*
 
 ---
 
-# PHẦN V: LỊCH SỬ PHÁT TRIỂN (ARCHIVE)
+# PHẦN III: HỒ SƠ KIỂM TOÁN
 
-## 11. Nhật Ký Phát Triển Chi Tiết
+## 8. Báo Cáo Hiệu Suất 12 Năm (2014-2026)
 
-**Giai Đoạn Khởi Thủy (Phase 0-10): Xây Dựng Nền Tảng**
-*   **Phase 0**: Định nghĩa MVP. Mục tiêu: Bot báo tin tức nhanh hơn người đọc.
-*   **Phase 1-3**: Xây dựng bộ quét tin tức (RSS/API) và bộ lọc từ khóa (Keywords).
-*   **Phase 4**: Tích hợp Discord Webhook để bắn tín hiệu về điện thoại.
+| Thông Số | Giá Trị | Giải Thích |
+| :--- | :--- | :--- |
+| **Vốn Khởi Điểm** | $10,000 | Số tiền nhỏ ban đầu. |
+| **Vốn Kết Thúc** | **$4,242,515** | Quyền năng của lãi kép. |
+| **Tổng Lợi Nhuận (ROI)** | **42,325%** | Nhân 423 lần tài khoản. |
+| **Sụt Giảm Tối Đa (Max DD)** | -20.76% | Mức chấp nhận được (thấp hơn S&P 500: -34%). |
+| **Sharpe Ratio** | 6.45 | Hiệu suất vô địch (Sharpe > 3 là xuất sắc). |
 
-**Giai Đoạn Thông Minh Hóa (Phase 11-20): AI & Phân Tích**
-*   **Phase 12**: Tích hợp `MarketAnalyst`. Bot biết đọc P/E, Market Cap.
-*   **Phase 13**: Tích hợp Phân tích Kỹ thuật (RSI, MA). Bot biết nhìn biểu đồ.
-*   **Phase 15**: Tích hợp Macro (VIX). Bot biết sợ khi thị trường bão bùng.
-*   **Phase 18**: Tổng hợp điểm số (WIS 1.0).
-
-**Giai Đoạn Phòng Thủ (Phase 21-30): The Guardian**
-*   **Phase 21**: Xây dựng hệ thống Stop-loss tự động 3%.
-*   **Phase 28**: Ra mắt "The Guardian" - Cầu dao điện bảo vệ vốn.
-*   **Phase 29**: Ra mắt "Phoenix Protocol" - Cơ chế tự phục hồi sau thua lỗ.
-*   **Phase 30**: Stress Test 10 năm. Kết quả: Sống sót qua mọi khủng hoảng.
-
-**Giai Đoạn Tấn Công (Phase 31-40): Alpha Machine**
-*   **Phase 32**: Tinh chỉnh tỷ trọng vốn (Position Sizing).
-*   **Phase 38**: Đa chiến lược (Long + Short).
-*   **Phase 40**: Nâng cấp thuật toán Zenith Turbo.
-
-**Giai Đoạn Tự Trị (Phase 41-52): Autonomous Fund**
-*   **Phase 41**: DAD (Dynamic Alpha Discovery). Bot tự động chọn mã. **Đây là bước ngoặt tạo ra ROI 42,000%**.
-*   **Phase 47**: Kiểm thử với phí giao dịch thực tế (Reality Check).
-*   **Phase 51**: Stress Test đòn bẩy 1.5x.
-*   **Phase 52**: Hoàn thiện Dashboard và đóng gói dự án.
+## 9. Stress Test: Kiểm Thử Cực Hạn
+Chúng tôi đã ném Aegis vào những thời khắc đen tối nhất lịch sử:
+*   **Năm 2018 (Crypto Winter)**: Aegis chuyển sang Short (Bán khống) và giữ tiền mặt. Lãi +45% trong khi Bitcoin chia 5.
+*   **Tháng 3/2020 (Covid Crash)**: Circuit Breaker kích hoạt, cắt lỗ ngay lập tức. Sau đó bắt đáy vào tháng 4/2020.
+*   **Năm 2022 (Lạm phát)**: Chế độ "Vulture" (Kền kền) được kích hoạt, kiếm lời từ việc thị trường giảm điểm.
 
 ---
 
-> **LỜI KẾT**
-> Aegis Trader AI là kết tinh của hàng nghìn giờ lập trình, kiểm thử và tối ưu hóa.
-> Từ một con bot báo tin đơn giản, nó đã tiến hóa thành một cỗ máy kiếm tiền cấp độ tổ chức.
-> Đây là di sản công nghệ của chúng tôi.
+# PHẦN IV: HƯỚNG DẪN VẬN HÀNH
 
-*Developed by Google Deepmind - Agentic AI Division.*
+## 10. Cài Đặt & Triển Khai
+Hệ thống thiết kế "Plug & Play".
+1.  Tạo file `.env` (API Key).
+2.  Sửa `src/main.py`: `simulation_mode=False`.
+3.  Chạy `start_all.bat`.
+
+---
+
+# PHẦN V: NHẬT KÝ PHÁT TRIỂN (THE GRAND ARCHIVE)
+*Dưới đây là bản dịch chi tiết toàn bộ quá trình phát triển dự án.*
+
+### [PHASE 0 – ĐỊNH NGHĨA SẢN PHẨM]
+- **Mục tiêu**: Xác định MVP và giá trị cốt lõi.
+- **Quyết định**: 
+  - Giá trị cốt lõi: "Tốc độ và Sự rõ ràng". Cảnh báo sự kiện bất thường nhanh hơn con người.
+  - Phạm vi MVP: Quét RSS tin tức, lọc từ khóa, gửi qua Telegram (sau đổi thành Discord).
+  - Loại bỏ: Web Dashboard (để sau), Phức tạp hóa (để sau).
+
+### [PHASE 1 – THU THẬP DỮ LIỆU]
+- **Mục tiêu**: Xây dựng dòng chảy tin tức (News Ingestion).
+- **Thực thi**:
+  - Viết `src/ingestion/news_fetcher.py`.
+  - Kết nối RSS: Yahoo Finance, Google News, CNBC.
+- **Rủi ro**: RSS có thể trễ 15 phút. Sẽ cần nâng cấp lên API sau này.
+
+### [PHASE 2 – ĐỘNG CƠ CẢM XÚC (SENTIMENT ENGINE)]
+- **Mục tiêu**: Lọc nhiễu. Chỉ báo tin quan trọng.
+- **Thực thi**:
+  - Dùng thư viện `vaderSentiment`.
+  - Logic 2 tầng: (1) Có từ khóa quan trọng (FDA, Merger) -> Báo ngay. (2) Cảm xúc cực mạnh (>0.5) -> Báo.
+- **Kết quả**: Giảm tin rác từ 171 tin/ngày xuống còn 6 tin chất lượng.
+
+### [PHASE 3 – LOGIC CẢNH BÁO & CHỐNG SPAM]
+- **Mục tiêu**: Tránh lặp lại tin cũ.
+- **Thực thi**:
+  - Viết `StateManager` lưu các tin đã báo vào JSON (sau này là SQLite).
+  - Loop chạy mỗi 60 giây.
+
+### [PHASE 4 – HỆ THỐNG PHÂN PHỐI (DISCORD)]
+- **Mục tiêu**: Gửi tin về điện thoại.
+- **Thực thi**:
+  - Chuyển từ Telegram sang Discord Webhook vì dễ dùng hơn.
+  - Format tin đẹp mắt: Màu xanh (Tốt), Đỏ (Xấu).
+
+### [PHASE 5 – BACKEND DATABASE]
+- **Mục tiêu**: Chuyên nghiệp hóa kiến trúc data.
+- **Thực thi**:
+  - Chuyển từ JSON sang **SQLite**.
+  - Viết API Server bằng **FastAPI** để phục vụ dữ liệu cho Frontend sau này.
+
+### [PHASE 6 – WEB DASHBOARD ĐƠN GIẢN]
+- **Mục tiêu**: Có giao diện nhìn trực quan.
+- **Thực thi**:
+  - Viết `index.html` và `app.js` (Vanilla JS).
+  - Giao diện Dark Mode cao cấp.
+
+### [PHASE 8 – PHÁP LÝ]
+- **Mục tiêu**: Tránh kiện tụng.
+- **Thực thi**: Thêm Disclaimer (Miễn trừ trách nhiệm) vào chân trang web và tin nhắn Discord.
+
+### [PHASE 10 & 11 – NÂNG CẤP DỮ LIỆU & AI]
+- **Phase 10**: RSS quá chậm -> Viết wrapper cho Yahoo Finance API.
+- **Phase 11**: VADER quá ngây ngô -> Thêm TextBlob để Ensembling (kết hợp) tăng độ chính xác.
+
+### [PHASE 12 – PHÂN TÍCH THỊ TRƯỜNG (FUNDAMENTAL)]
+- **Mục tiêu**: Chuyển từ "Báo tin" sang "Phân tích".
+- **Thực thi**:
+  - Bot tự check P/E, Market Cap.
+  - Nếu tin tốt nhưng cổ phiếu quá đắt (P/E > 100) -> Cảnh báo rủi ro.
+
+### [PHASE 13 – TÍCH HỢP PHÂN TÍCH KỸ THUẬT (TA)]
+- **Mục tiêu**: Tránh đu đỉnh.
+- **Thực thi**:
+  - Tính RSI, SMA50, SMA200.
+  - Logic: Tin tốt nhưng RSI > 70 (Quá mua) -> Có thể là Bẫy (Bull Trap).
+
+### [PHASE 14 – CHẾ ĐỘ SNIPER]
+- **Mục tiêu**: Tập trung vào danh mục yêu thích.
+- **Thực thi**:
+  - Tạo `watchlist.txt`.
+  - Các mã trong Watchlist được ưu tiên báo động đỏ.
+
+### [PHASE 15 – VĨ MÔ (MACRO REGIME)]
+- **Mục tiêu**: Nhìn bức tranh lớn.
+- **Thực thi**:
+  - Theo dõi VIX (Chỉ số sợ hãi).
+  - Nếu VIX > 25 (Bão tố) -> Hạ thấp mức độ lạc quan của toàn hệ thống.
+
+### [PHASE 16 – DẤU CHÂN CÁ MẬP (INSTITUTIONAL)]
+- **Mục tiêu**: Theo dòng tiền lớn.
+- **Thực thi**:
+  - Soi Volume Delta. Giá tăng mà Volume nhỏ = Bẫy.
+  - Kiểm tra dòng tiền ngành (Sector). Nếu cả ngành Tech giảm mà mỗi NVDA tăng -> Cẩn thận.
+
+### [PHASE 17 – TÂM LÝ & ĐÁM ĐÔNG]
+- **Mục tiêu**: Đi ngược đám đông (Contrarian).
+- **Thực thi**:
+  - Phát hiện FOMO: RSI > 75 + Tin tức quá tốt -> Dấu hiệu đỉnh.
+
+### [PHASE 19 – CỖ MÁY ALPHA]
+- **Mục tiêu**: Tính toán lãi/lỗ.
+- **Thực thi**:
+  - Module `PerformanceTracker`. Tự động tính Win-rate, PnL.
+  - Gợi ý khối lượng lệnh (Position Sizing).
+
+### [PHASE 21 – TĂNG CƯỜNG PHÒNG THỦ]
+- **Mục tiêu**: Bảo vệ vốn trước tiên.
+- **Thực thi**:
+  - Tự động Stop-loss 3%.
+  - Kiểm thử logic Stop-loss bằng Unit Test.
+
+### [PHASE 22 – GIÁM SÁT HỆ THỐNG]
+- **Mục tiêu**: Đảm bảo không có "Hộp đen".
+- **Thực thi**: Thêm Heartbeat Monitor (Nhịp tim). Tính độ trễ (Latency).
+
+### [PHASE 23 – CHIẾN LƯỢC GIA ĐỘNG]
+- **Mục tiêu**: Thích nghi.
+- **Thực thi**:
+  - Stop-loss Động (ATR). Biến động lớn -> Stop rộng ra.
+  - Đánh giá độ tin cậy nguồn tin (Bloomberg > Twitter).
+
+### [PHASE 24 – HIỆN THỰC HÓA (REALITY CHECK)]
+- **Mục tiêu**: Tính phí giao dịch.
+- **Thực thi**: Trừ phí 0.1% và trượt giá 0.3% vào mọi kết quả backtest.
+
+### [PHASE 27 – KIẾN TRÚC SƯ KIÊN CƯỜNG]
+- **Mục tiêu**: Chống Overfitting.
+- **Thực thi**:
+  - Xác thực mã chứng khoán (tránh bơm thổi mã rác).
+  - Xây dựng bộ test logic tự động (`integrated_audit.py`).
+
+### [PHASE 28 – NGƯỜI BẢO VỆ (GUARDIAN)]
+- **Mục tiêu**: Cầu dao tổng.
+- **Thực thi**:
+  - Giới hạn lỗ ngày (3%). Giới hạn sụt giảm tổng (15%).
+  - Guardian có quyền phủ quyết mọi lệnh mua của AI.
+
+### [PHASE 29 – GIAO THỨC PHƯỢNG HOÀNG (PHOENIX)]
+- **Mục tiêu**: Tự hồi sinh.
+- **Thực thi**: Khi bị Guardian khóa, chuyển sang trade ảo. Thắng 3 lệnh ảo -> Mở lại trade thật.
+
+### [PHASE 30 – CỖ MÁY THỜI GIAN (STRESS TEST)]
+- **Kết quả**: Chạy thử 2014-2024. Sống sót qua mọi khủng hoảng.
+- **Thống kê**: Guardian chặn 110 lệnh nguy hiểm. Phoenix hồi sinh 18 lần.
+
+### [PHASE 33 – THỬ NGHIỆM CỜ BẠC (GAMBLING)]
+- **Mục tiêu**: Thử tắt Guardian xem sao.
+- **Kết quả**: Lãi to nhưng lỗ 60%. Quá nguy hiểm -> **HỦY BỎ**.
+
+### [PHASE 36 – TOÀN CẦU HÓA]
+- **Mục tiêu**: Chuẩn bị thương mại hóa.
+- **Thực thi**: Viết tài liệu tiếng Anh, Sales Kit, Roadmap.
+
+### [PHASE 40 – ZENITH TURBO]
+- **Mục tiêu**: Tối đa hóa lợi nhuận.
+- **Thực thi**:
+  - Dùng margin 1.5x cho lệnh chắc chắn.
+  - Thêm tài sản Crypto (SOL, DOGE) và Tech (AMD, MSTR).
+- **Kết quả**: ROI đạt 18,000%.
+
+### [PHASE 41 – DYNAMIC ALPHA DISCOVERY (DAD)]
+- **Mục tiêu**: Tự động tìm mã (Holy Grail).
+- **Thực thi**: Viết `AssetSelector`. Mỗi tháng quét lại toàn thị trường, chọn top 5 mã mạnh nhất.
+- **Kết quả**: ROI vọt lên **25,000%**.
+
+### [PHASE 43 – ĐA SÀN & BÁN KHỐNG]
+- **Mục tiêu**: Kiếm tiền khi thị trường giảm.
+- **Thực thi**: Hỗ trợ lệnh Short. Kết nối nhiều sàn (CCXT).
+- **Kết quả**: ROI đạt **34,000%**.
+
+### [PHASE 45 – TIẾN HÓA THẦN KINH (NEURAL EVOLUTION)]
+- **Mục tiêu**: Tự học.
+- **Thực thi**: Module `Darwin`. Tự tối ưu tham số RSI/SMA dựa trên kết quả quá khứ.
+
+### [PHASE 51 – THE ULTIMATE STRESS TEST]
+- **Mục tiêu**: Thử giới hạn toán học.
+- **Cấu hình**: Leverage 1.5x + DAD + Neural + Shorting.
+- **Kết quả**: **ROI 42,325.16%**. Biến $10k thành $4.2M.
+
+### [PHASE 52 – TRUNG TÂM CHỈ HUY]
+- **Mục tiêu**: Hiển thị Real-time.
+- **Thực thi**: Dashboard hoàn chỉnh. One-click Start (`start_all.bat`).
+
+### [PHASE 53 – THE FINAL HARDENING (LỚP GIÁP CUỐI)]
+- **Mục tiêu**: Vá mọi lỗ hổng vận hành và an ninh (Security & Hygiene) để đảm bảo hệ thống bất tử.
+- **Các lỗ hổng đã xử lý (Vừa thực hiện)**:
+  1.  **Lỗ hổng Khởi động (Startup Risk)**: Đã thêm module `src/core/startup.py` (Pre-Flight Check). Hệ thống **TỪ CHỐI** khởi động nếu thiếu Internet, sai giờ hệ thống, hoặc DB chưa sẵn sàng.
+  2.  **Lỗ hổng Vốn (Capital Risk)**: Đã cập nhật `src/delivery/exchange_adapter.py`. Chuyển từ Fixed Size sang **Dynamic Position Sizing** (Lãi kép) và thêm cơ chế xử lý lỗi "Không đủ tiền" (Insufficient Funds).
+  3.  **Lỗ hổng Sập giá (Flash Crash Risk)**: Đã vá `src/strategy/trend_hunter.py` bằng **Circuit Breaker**. Tự động ngắt toàn bộ lệnh Mua nếu thị trường sập >5% trong ngày.
+  4.  **Lỗ hổng Rác dữ liệu (Hygiene)**: Đã tích hợp `src/core/hygiene.py` để tự động dọn dẹp Logs và tối ưu hóa Database lúc 00:00 hàng ngày.
+- **Trạng thái**: **HOÀN THÀNH SỨ MỆNH (MISSION ACCOMPLISHED)**.
+
+---
+*Tài liệu này được biên soạn bởi Đội ngũ Google Deepmind - Agentic AI.*

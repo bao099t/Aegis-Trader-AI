@@ -16,11 +16,11 @@ from src.simulation.data_loader import DataLoader
 from src.intelligence.asset_selector import AssetSelector
 from src.intelligence.predictor import PricePredictor # Phase 49
 
-def process_alerts(phoenix_instance=None):
+def process_alerts(phoenix_instance=None, active_tickers=None):
     db = db_setup.SessionLocal()
     try:
         print(f"\n[{datetime.datetime.now().strftime('%H:%M:%S')}] Checking sources...")
-        candidates, _ = fetch_and_filter()
+        candidates, _ = fetch_and_filter(active_tickers)
         
         new_alerts_count = 0
         
@@ -101,12 +101,6 @@ def process_alerts(phoenix_instance=None):
 
 from src.core.phoenix import Phoenix
 
-def main():
-    print("Starting Alert System (DB Backed)...")
-    monitor = InfrastructureMonitor()
-    # Ensure tables exist
-    models.Base.metadata.create_all(bind=db_setup.engine)
-    
 from src.delivery.discord_webhook import send_alert, send_heartbeat
 
 def main():
@@ -114,6 +108,20 @@ def main():
     monitor = InfrastructureMonitor()
     # Ensure tables exist
     models.Base.metadata.create_all(bind=db_setup.engine)
+    
+    # --- PHASE 9: PRE-FLIGHT CHECKLIST ---
+    # Initialize Broker Early for Diagnostics
+    broker = BrokerAPI(simulation_mode=True) # Paper Trading Default
+    
+    from src.core.startup import PreFlightCheck
+    inspector = PreFlightCheck(broker)
+    if not inspector.run_all():
+        print("❌ Startup Aborted due to System Failure.")
+        # return # Start anyway for now to avoid blocking user if test fails? 
+        # No, safety first. But for dev, maybe print only.
+        # Let's return to enforce safety as promised.
+        return
+    # -------------------------------------
     
     # Initialize Phoenix (Phase 29)
     from src.core.guardian import Guardian
@@ -183,11 +191,8 @@ from src.delivery.broker_api import BrokerAPI
 from src.strategy.trend_hunter import TrendHunterStrategy
 
 # DAD Broad Universe (Phase 9)
-BROAD_UNIVERSE = [
-    'BTC-USD', 'ETH-USD', 'SOL-USD', 'DOGE-USD', 'LINK-USD',
-    'NVDA', 'TSLA', 'AMZN', 'AAPL', 'MSFT', 'AMD', 'MSTR', 'GOOGL', 'META',
-    'GC=F', 'CL=F'
-]
+# DAD Broad Universe is now managed by AssetSelector via watchlist.txt
+# BROAD_UNIVERSE = [...] # Deprecated
 
 def process_technical_analysis(trend_strategy, mean_reversion_strategy, broker, tickers, guardian=None, predictor=None):
     """
@@ -393,8 +398,20 @@ if __name__ == "__main__":
     
     # Initialize DAD (Phase 9)
     loader = DataLoader()
-    selector = AssetSelector(broad_universe=BROAD_UNIVERSE)
-    active_tickers = BROAD_UNIVERSE[:5] # Default
+    # Initialize DAD (Phase 9)
+    loader = DataLoader()
+    selector = AssetSelector() # Autoloads from watchlist.txt
+    print(f"  [DAD] Broad Universe Loaded: {len(selector.broad_universe)} assets.")
+    
+    # Initial Alpha Scan
+    data_map = {}
+    for t in selector.broad_universe:
+         df = loader.fetch_data(t, (datetime.datetime.now() - datetime.timedelta(days=60)).strftime("%Y-%m-%d"), datetime.datetime.now().strftime("%Y-%m-%d"))
+         if df is not None:
+             data_map[t] = df
+    
+    active_tickers = selector.get_top_alpha(data_map, datetime.datetime.now(), top_n=5)
+    print(f"  [DAD] Active Alpha Leaders: {active_tickers}")
     
     # Initialize AI Brain (Phase 49)
     print("  [Main] Initializing Zenith AI Neural Predictor...")
@@ -404,7 +421,7 @@ if __name__ == "__main__":
     phoenix.morning_routine()
     
     last_cleanup_day = datetime.datetime.now().day
-    last_dad_update_time = 0
+    last_dad_update_time = time.time() # Just updated
     DAD_UPDATE_INTERVAL = 86400 # 24 Hours
     
     # Heartbeat Setup (Phase 35)
@@ -422,19 +439,63 @@ if __name__ == "__main__":
         if now.day != last_cleanup_day and now.hour >= 8: # 8 AM cleanup
             print(phoenix.clean_house())
             phoenix.morning_routine()
+            
+            # --- PHASE 6: DARWINIAN EVOLUTION (Daily Optimization) ---
+            print("🧬 [Evolution] Optimizing DNA for Alpha Leaders...")
+            from src.intelligence.darwin import Darwin
+            darwin = Darwin()
+            for t in active_tickers:
+                # Fetch recent data for evolution
+                df_evo = loader.fetch_data(t, (now - datetime.timedelta(days=100)).strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d"))
+                if df_evo is not None:
+                     darwin.evolve(t, df_evo, None)
+            
+            # --- PHASE 6: NEURAL PLASTICITY (24/7 Continuous Learning) ---
+            # Crypto never sleeps. We retrain EVERY DAY to capture overnight regime shifts.
+            print("🧠 [Plasticity] Daily Learning Triggered. Retraining AI Brain...")
+            training_data = []
+            # Use broader universe for training to ensure generalizability
+            universe_for_training = selector.broad_universe[:20] 
+            
+            for t in universe_for_training:
+                # Fetch 1 year data for training
+                df_train = loader.fetch_data(t, (now - datetime.timedelta(days=365)).strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d"))
+                if df_train is not None:
+                    # Add target column: Next Day Return > 0
+                    df_train['Target'] = (df_train['Close'].shift(-1) > df_train['Close']).astype(int)
+                    df_train.dropna(inplace=True)
+                    training_data.append(df_train)
+            
+            if training_data:
+                # Fast Daily Retrain (Keep it lightweight)
+                predictor.train(training_data, epochs=15) 
+            # ---------------------------------------------------------
+            
+            # --- PHASE 7: SYSTEM HYGIENE (The Janitor) ---
+            from src.core.hygiene import SystemHygiene
+            janitor = SystemHygiene()
+            janitor.clean_logs()
+            janitor.optimization_db()
+            # ---------------------------------------------
+
+            # Also refresh Universe via AssetSelector if needed
+            selector = AssetSelector() 
             last_cleanup_day = now.day
             
         start_cycle = time.time()
         
         # 1. Process News Alerts
-        process_alerts(phoenix) 
+        process_alerts(phoenix, active_tickers) 
         scanned_news_count += 50
         
         # 2. Update DAD Alpha Rotation (Every 24 hours)
         if time.time() - last_dad_update_time > DAD_UPDATE_INTERVAL:
             print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] 🛰️ Rotating Alpha Universe...")
+            # Reload Selector to catch any Autonomous updates to watchlist.txt
+            selector = AssetSelector()
+            
             data_map = {}
-            for t in BROAD_UNIVERSE:
+            for t in selector.broad_universe:
                 df = loader.fetch_data(t, (datetime.datetime.now() - datetime.timedelta(days=60)).strftime("%Y-%m-%d"), datetime.datetime.now().strftime("%Y-%m-%d"))
                 if df is not None:
                     data_map[t] = df
@@ -447,8 +508,29 @@ if __name__ == "__main__":
 
         # 3. Process Technical Trends (Every 4 hours)
         if time.time() - last_trend_check > TREND_INTERVAL:
-            process_technical_analysis(trend_hunter, mean_reversion, broker, active_tickers, guardian_for_phoenix, predictor)
-            last_trend_check = time.time()
+            # ORPHAN PROTOCOL: Include currently held positions in the scan
+            try:
+                held_tickers = broker.get_active_positions()
+                
+                # Merge Top 5 + Held (Set to deduplicate)
+                scan_universe = list(set(active_tickers + held_tickers))
+                
+                print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] 🔍 Scanning {len(scan_universe)} assets ({len(active_tickers)} Alpha + {len(held_tickers)} Held)...")
+                
+                process_technical_analysis(trend_hunter, mean_reversion, broker, scan_universe, guardian_for_phoenix, predictor)
+                last_trend_check = time.time()
+            except Exception as e:
+                print(f"  [CRITICAL LOOP ERROR] Technical Analysis Failed: {e}")
+                # Reset timer to retry sooner? Or just wait interval?
+                # Wait interval is safer to avoid spamming errors.
+                # last_trend_check = time.time() # Let it retry next cycle or keep 4 hours?
+                # If we updated last_trend_check, we skip for 4 hours. If we don't, we retry immediately (next min).
+                # Immediate retry might spam loop. Let's set it to retry in 5 mins?
+                # Simple: Just let it pass. It will retry in next loop iteration? 
+                # No, main loop runs every 60s. condition `time.time() - last > INTERVAL`.
+                # If we don't update last_trend_check, it will run again in 60s.
+                # This is good. It retries fairly soon.
+                pass
         
         # 3. Check Heartbeat & Dashboard Export (Every 10 seconds for Live Feel)
         if time.time() - last_heartbeat_time > 10:

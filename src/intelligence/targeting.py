@@ -16,21 +16,32 @@ class TargetingManager:
         with open(self.watchlist_path, 'r') as f:
             lines = f.readlines()
             self.watchlist = {line.strip().upper() for line in lines if line.strip()}
+        # Ensure we have at least some default keys if empty
+        if not self.watchlist:
+             self.watchlist = {'BTC-USD', 'NVDA', 'TSLA'} # Emergency fallback
         print(f"  [Targeting] Loaded {len(self.watchlist)} tickers: {self.watchlist}")
 
-    def check_priority(self, ticker):
+    def check_priority(self, ticker, active_tickers=None):
         """
         Returns priority level:
-        - 'CRITICAL': In Watchlist.
-        - 'NORMAL': Not in Watchlist but Major Company (S&P 500 equivalent logic - implemented broadly).
+        - 'CRITICAL': Currently Active (Top 5 DAD). Alert on EVERYTHING.
+        - 'NORMAL': In Broad Watchlist. Alert on High Impact.
+        - 'LOW': Not tracked. Ignore.
         """
-        if not ticker:
+        if not ticker: return 'LOW'
+        
+        ticker_u = ticker.upper()
+        
+        # 1. Active Asset (Trace Mode)
+        if active_tickers:
+            if ticker_u in [t.upper() for t in active_tickers]:
+                return 'CRITICAL'
+                
+        # 2. Broad Universe (Monitor Mode)
+        if ticker_u in self.watchlist:
             return 'NORMAL'
             
-        if ticker.upper() in self.watchlist:
-            return 'CRITICAL'
-            
-        return 'NORMAL'
+        return 'LOW'
         
     def should_alert(self, ticker, impact_level, priority_level):
         """

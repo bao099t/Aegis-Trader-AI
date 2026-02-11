@@ -31,12 +31,43 @@ class BrokerAPI:
             print(f"  [Broker] {order['status']}: {direction} {ticker} at ${entry_price}")
         return order
 
-    def get_active_orders(self):
-        if hasattr(self.adapter, 'log_path'):
-             with open(self.adapter.log_path, "r") as f:
-                import json
-                return json.load(f)
-        return []
+    def get_active_positions(self):
+        """
+        Calculates Net Open Positions.
+        - Simulation: Replays log history.
+        - Live: Queries Exchange Adapter directly.
+        """
+        # 1. Live Execution (Phase 43.5)
+        if not self.simulation_mode:
+            if hasattr(self.adapter, 'fetch_positions'):
+                return self.adapter.fetch_positions()
+            else:
+                 print("  [Broker] Error: Adapter lacking fetch_positions()")
+                 return []
+        
+        # 2. Simulation Mode (Log Replay)
+        if not hasattr(self.adapter, 'log_path') or not os.path.exists(self.adapter.log_path):
+             return []
+             
+        try:
+            with open(self.adapter.log_path, "r") as f:
+                orders = json.load(f)
+            
+            portfolio = {} 
+            for o in orders:
+                ticker = o.get('ticker')
+                direction = o.get('direction') 
+                if direction == "BULLISH":
+                    portfolio[ticker] = "LONG"
+                elif direction == "BEARISH":
+                     portfolio[ticker] = "FLAT"
+            
+            active = [t for t, state in portfolio.items() if state == "LONG"]
+            return active
+            
+        except Exception as e:
+            print(f"  [Broker] Error reconciling portfolio: {e}")
+            return []
 
 if __name__ == "__main__":
     broker = BrokerAPI()

@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import os
+import time
 
 class AssetSelector:
     """
@@ -7,11 +9,36 @@ class AssetSelector:
     Scans a broad universe and identifies high-alpha "Super Assets" for the Turbo Protocol.
     """
     def __init__(self, broad_universe=None):
-        self.broad_universe = broad_universe or [
-            'BTC-USD', 'ETH-USD', 'SOL-USD', 'DOGE-USD', 'LINK-USD',
-            'NVDA', 'TSLA', 'AMZN', 'AAPL', 'MSFT', 'AMD', 'MSTR', 'GOOGL', 'META',
-            'GC=F', 'CL=F'
-        ]
+        self.watchlist_path = "watchlist.txt"
+        self.broad_universe = []
+        
+        # 1. Try to load from file
+        if os.path.exists(self.watchlist_path):
+            with open(self.watchlist_path, 'r') as f:
+                self.broad_universe = [line.strip() for line in f if line.strip()]
+        
+        # 2. Autonomous Discovery (If empty or old)
+        # We check if file is older than 24 hours
+        should_refresh = False
+        if not self.broad_universe:
+            should_refresh = True
+        elif os.path.exists(self.watchlist_path):
+            mtime = os.path.getmtime(self.watchlist_path)
+            if (time.time() - mtime) > 86400: # 24 hours
+                should_refresh = True
+        
+        if should_refresh:
+            print("  [AssetSelector] Universe is stale. Launching Autonomous Discovery...")
+            from src.ingestion.universe_discoverer import UniverseDiscoverer
+            ud = UniverseDiscoverer(self.watchlist_path)
+            self.broad_universe = ud.refresh_universe()
+            
+        # 3. Last Resort Fallback
+        if not self.broad_universe:
+            self.broad_universe = [
+                'BTC-USD', 'ETH-USD', 'SOL-USD', 'NVDA', 'TSLA', 
+                'AMZN', 'AAPL', 'MSFT', 'AMD', 'GOOGL', 'META', 'GC=F'
+            ]
 
     def rank_assets(self, all_data, current_date, lookback=30):
         """
