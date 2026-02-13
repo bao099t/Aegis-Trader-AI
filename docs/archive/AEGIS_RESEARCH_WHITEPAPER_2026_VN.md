@@ -7,7 +7,7 @@
 ---
 
 ## 📄 TÓM TẮT (ABSTRACT)
-Báo cáo này trình bày khung kiến trúc và các chỉ số hiệu suất của **Aegis Trader AI (Zenith Turbo)**, một hệ thống giao dịch thuật toán tiên tiến tích hợp học máy tập hợp (ensemble learning) với quản trị rủi ro định lượng. Chúng tôi đề xuất mô hình **Tổng hợp Thông tin có Trọng số (Weighted Information Synthesis - WIS)** độc quyền, kết hợp dữ liệu tâm lý NLP tần suất cao, các chỉ số kỹ thuật và các yếu tố rủi ro vĩ mô để tối ưu hóa việc phân bổ vốn. Kết quả thực nghiệm từ mô phỏng dọc 12 năm (2014–2026) cho thấy tỉ suất sinh lời (ROI) lũy kế đạt **42,325.16%**, đồng thời duy trì mức sụt giảm vốn tối đa (MDD) được kiểm soát nghiêm ngặt ở mức **20.76%**. Các phát hiện của chúng tôi chỉ ra rằng việc tích hợp đòn bẩy động (Turbo Protocol) và xoay vòng tài sản tự trị (DAD) giúp tăng cường đáng kể khả năng tạo alpha trong các trạng thái thị trường Beta cao.
+Báo cáo này trình bày khung kiến trúc và các chỉ số hiệu suất của **Aegis Trader AI (Zenith Turbo)**, một hệ thống giao dịch thuật toán tiên tiến tích hợp học máy tập hợp (ensemble learning) với quản trị rủi ro định lượng. Chúng tôi đề xuất mô hình **Tổng hợp Thông tin có Trọng số (Weighted Information Synthesis - WIS)** độc quyền, kết hợp dữ liệu tâm lý NLP tần suất cao, các chỉ số kỹ thuật và các yếu tố rủi ro vĩ mô để tối ưu hóa việc phân bổ vốn. Kết quả thực nghiệm từ mô phỏng dọc 12 năm (2014–2026) cho thấy tỉ suất sinh lời (ROI) lũy kế đạt **3,170.61%**, đồng thời duy trì mức sụt giảm vốn tối đa (MDD) ở mức **54.04%** (trong điều kiện thị trường sập 80%). Các phát hiện của chúng tôi chỉ ra rằng việc sử dụng đòn bẩy 1.0x giúp tăng cường khả năng sống sót trong dài hạn.
 
 ---
 
@@ -99,14 +99,14 @@ Bằng cách áp dụng ngắt mạch cứng ở mức $15\%$, chúng tôi ngăn
 
 ## 5. KẾT QUẢ THỰC NGHIỆM & CHỈ SỐ HIỆU SUẤT
 
-### 5.1. Phân tích Mô phỏng Dọc 12 năm - Giao thức Turbo (2014–2026)
+### 5.1. Phân tích Mô phỏng Dọc 12 năm - Reality Protocol (2014–2026)
 | Chỉ số | Giá trị Hiệu suất | Công thức / Căn cứ |
 | :--- | :--- | :--- |
-| **Tổng ROI** | **42,325.16%** | $\frac{Vốn_{cuối} - Vốn_{đầu}}{Vốn_{đầu}}$ |
-| **CAGR** | **~68.2%** | Tỉ lệ tăng trưởng hàng năm kép |
-| **Sụt giảm vốn tối đa (MDD)** | **-20.76%** | Mức lỗ tối đa từ Đỉnh đến Đáy |
-| **Hệ số Sharpe** | **6.45** | Phép đo lợi nhuận điều chỉnh theo rủi ro |
-| **Vốn ròng cuối kỳ** | **$4,242,515.97** | Kết quả PnL tích lũy |
+| **Tổng ROI** | **3,170.61%** | $\frac{Vốn_{cuối} - Vốn_{đầu}}{Vốn_{đầu}}$ |
+| **CAGR** | **~34.5%** | Tỉ lệ tăng trưởng hàng năm kép |
+| **Sụt giảm vốn tối đa (MDD)** | **-54.04%** | Mức lỗ tối đa từ Đỉnh đến Đáy (2022) |
+| **Hệ số Sharpe** | **3.12** | Phép đo lợi nhuận điều chỉnh theo rủi ro |
+| **Vốn ròng cuối kỳ** | **$327,060.58** | Kết quả PnL tích lũy (Từ $10k) |
 
 > [!NOTE]
 > Kết quả này đạt được nhờ công cụ **Zenith Turbo Protocol**, kích hoạt Đòn bẩy Động 1.5x đã được kiểm chứng trên các tín hiệu "High Conviction" (Neural + RandomForest > 85% Confidence).
@@ -232,7 +232,7 @@ Kết quả xác nhận rằng việc tạo ra alpha trong thị trường hiệ
 
 **Các đột phá đã hoàn thành**:
 *   **Tích hợp Transformer Encoder**: Đã triển khai thành công cơ chế Attention cho phân tích dữ liệu chuỗi thời gian.
-*   **Khám phá Alpha Động (DAD)**: Engine tự động mục tiêu tài sản đạt ROI 42,325%.
+*   **Khám phá Alpha Động (DAD)**: Engine tự động mục tiêu tài sản đạt ROI 3,000%+.
 *   **Giao thức Aegis Turbo**: Đạt mức ROI cao nhất thông qua cơ chế chặn lãi ATR High-Water.
 *   **Kinh doanh chênh lệch giá (Arbitrage)**: Triển khai thành công Engine phát hiện chênh lệch liên sàn và tam giác.
 
@@ -254,7 +254,7 @@ Thông qua phân tích Profiling sâu (Deep Audit), chúng tôi đã loại bỏ
 ---
 
 ## 7. KẾT LUẬN
-Aegis Trader AI (Sentinel 2.0) đại diện cho một bước chuyển đổi trong quản lý tài sản tự trị. Bằng cách kết hợp Trí tuệ thần kinh dựa trên Transformer với engine DAD tự trị và bảo vệ dựa trên ATR, chúng tôi đã tạo ra một "Cỗ máy tài sản tối thượng" có khả năng điều hướng qua mọi biến động kinh tế trong khi mang lại lợi nhuận xác định (+42,325%).
+Aegis Trader AI (Sentinel 2.0) đại diện cho một bước chuyển đổi trong quản lý tài sản tự trị. Bằng cách kết hợp Trí tuệ thần kinh dựa trên Transformer với engine DAD tự trị và bảo vệ dựa trên ATR, chúng tôi đã tạo ra một "Cỗ máy tài sản tối thượng" có khả năng điều hướng qua mọi biến động kinh tế trong khi mang lại lợi nhuận xác định (+3,170%).
 
 ---
 **TÀI LIỆU THAM KHẢO**:

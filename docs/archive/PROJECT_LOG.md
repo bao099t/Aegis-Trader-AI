@@ -401,11 +401,10 @@
   - Developed **WIS 2.0 (Weighted Intelligence Synthesis)** with 1.5x Turbo scaling for high-conviction signals.
   - Expanded Asset Universe: Added SOL-USD, DOGE-USD, AMD, MSTR for high-beta exposure.
   - Implemented 3-day **Re-entry Guard** to prevent sideways churn.
-- Results:
-  - **Verified ROI**: **+18,323.45%** (12-year simulation).
-  - **Max Drawdown**: -18.43%.
-  - **Final Equity**: $1,842,344.57.
-- Status: **TERMINAL PERFORMANCE ACHIEVED**.
+- Results (Theoretical Turbo Mode):
+  - **ROI (1.5x Margin)**: **+18,323.45%**.
+  - **Note**: Requires perfect execution and no margin calls.
+- Status: **THEORETICAL LIMIT ACHIEVED**.
 
 [PHASE 41 – DYNAMIC ALPHA DISCOVERY (DAD) PROTOCOL]
 - Objective: Transition from static assets to an autonomous, regime-switching machine.
@@ -497,10 +496,10 @@
   - Implemented Dynamic Margin Logic in `run_simulation.py`.
   - Simulation Config: 1.5x Leverage on High-Confidence Signals.
   - Stress Test: 12-Year Longitudinal Run (2014-2026).
-- Results:
-  - **Verified ROI**: **42,325.16%** ($10k -> $4.2M).
-  - **Max Drawdown**: -21.4% (Acceptable for this ROI).
-- Status: **MAXIMUM PERFORMANCE ACHIEVED**.
+- Results (Theoretical):
+  - **Model ROI**: **42,325.16%** ($10k -> $4.2M).
+  - **Reality Check**: This assumes zero margin calls during 50% drawdowns.
+- Status: **MAXIMUM THEORETICAL POTENTIAL**.
 
 [PHASE 52 – SENTINEL COMMAND CENTER]
 - Objective: Eliminate "Blind Spots" with a Real-Time Dashboard.
@@ -586,6 +585,18 @@
   - **Persistent Connection**: Refactored `main.py` to reuse Broker connection. Reduced order latency from 2s to <100ms.
   - **Deep Code Audit**: Verified thread safety and floating point precision.
 - Status: **MISSION ACCOMPLISHED (FINAL)**.
+
+[PHASE 65 – REALITY CHECK (SỰ THẬT TÀN KHỐC)]
+- Objective: Independent Verification of "Turbo" claims.
+- Tasks executed:
+  - Run 12-Year Simulation with **1.0x Leverage** (No Margin) and **Double Fees** (0.2%).
+  - Disable "God Mode" parameters.
+- Results (VERIFIED TRUTH):
+  - **ROI**: **3,170.61%** (x32 lần).
+  - **Equity**: $327,060.
+  - **Max Drawdown**: -54.04% (Crypto Winter).
+- Conclusion: The system is profitable (x32) but requires "Diamond Hands" to survive -54% drawdown.
+- Status: **VERIFIED & HONEST**.
 
 [PHASE 62 – PROJECT DARWIN (THE EVOLUTION)]
 - Objective: Autonomous Parameter Optimization.

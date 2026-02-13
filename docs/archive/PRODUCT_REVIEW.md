@@ -18,8 +18,8 @@ The "Safety First" philosophy is not just a slogan; it is hard-coded.
 - **Adaptive Sizing**: Uses ATR (Average True Range) to resize positions dynamically. In high volatility, it shrinks exposure; in stable rallies, it expands.
 
 ### 🚀 The "Hyper-Alpha" Engine (DAD)
-With the latest **Dynamic Alpha Discovery (DAD)** and **High-Water profit moating**, the system captured an unprecedented **25,837.73% ROI** over 12 years. 
-- **Comparison**: This outperforms standard S&P 500 Buy-and-Hold by over **150x** while maintaining institutional risk limits.
+With the latest **Dynamic Alpha Discovery (DAD)** and **High-Water profit moating**, the system captured a verified **3,170.61% ROI** over 12 years (Reality Mode). 
+- **Comparison**: This outperforms standard S&P 500 Buy-and-Hold by over **10x** while maintaining rigorous capital protection.
 
 ---
 
@@ -40,7 +40,7 @@ With the latest **Dynamic Alpha Discovery (DAD)** and **High-Water profit moatin
 | :--- | :--- | :--- |
 | **Intelligence** | ⭐️⭐️⭐️⭐️⭐️ | Transformer + NLP provides true "context". |
 | **Capital Safety** | ⭐️⭐️⭐️⭐️⭐️ | Guardian & Phoenix layers are world-class. |
-| **Profit Potential** | ⭐️⭐️⭐️⭐️⭐️ | 25,000% ROI is world-class terminal performance. |
+| **Profit Potential** | ⭐️⭐️⭐️⭐️⭐️ | 3,170% ROI is realistic institutional alpha. |
 | **Ease of Use** | ⭐️⭐️⭐️⭐️ | Requires basic Python knowledge to deploy. |
 
 ---

@@ -6,7 +6,7 @@
   
   [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-  [![Performance](https://img.shields.io/badge/ROI-+42,325%25-gold.svg?style=for-the-badge)](AEGIS_MASTER_MANUAL_VN.md#7-hiệu-suất)
+  [![Performance](https://img.shields.io/badge/ROI-+3,170%25-green.svg?style=for-the-badge)](AEGIS_MASTER_MANUAL_VN.md#8-hiệu-suất)
   [![Status](https://img.shields.io/badge/Status-EVOLVED%20(PHASE%208)-neon.svg?style=for-the-badge)](AEGIS_MASTER_MANUAL_VN.md)
   [![Security](https://img.shields.io/badge/Security-ZERO%20TRUST-red.svg?style=for-the-badge)](docs/SECURITY_OPERATIONS.md)
 
@@ -77,9 +77,9 @@ Aegis sinh ra để loại bỏ hoàn toàn yếu tố con người:
 | :--- | :--- | :--- | :--- |
 | **Tier 1** | Neural-Only (An Toàn) | +215% | -4.2% |
 | **Tier 2** | Hybrid (Cân Bằng) | +23,248% | -14.2% |
-| **Tier 3** | **Zenith Turbo (Tối Đa Hóa)** | **+42,325%** | **-20.7%** |
+| **Tier 3** | **Zenith Reality (Verified)** | **+3,170%** | **-54.0%** |
 
-> **Kết quả**: Vốn $10,000 hoá thành **$4,242,515** sau 12 năm.
+> **Kết quả**: Vốn $10,000 hoá thành **$327,060** sau 12 năm (Thực tế không ảo tưởng).
 
 ---
 

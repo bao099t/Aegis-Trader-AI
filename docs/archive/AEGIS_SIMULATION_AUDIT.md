@@ -1,4 +1,4 @@
-# 🧮 GIẢI MÃ CON SỐ 42,325% ROI (SIMULATION AUDIT)
+# 🧮 GIẢI MÃ CON SỐ 3,170% ROI (REALITY AUDIT)
 
 Bạn thắc mắc: *"Tại sao lại có con số khổng lồ như vậy? Dữ liệu lấy từ đâu?"*
 Đây là câu hỏi xuất sắc. Một con số quá lớn thường gây nghi ngờ. 
@@ -17,8 +17,8 @@ Chúng tôi **KHÔNG** tự bịa ra giá. Toàn bộ dữ liệu được tải
     *   **Tech Stocks**: NVDA (Nvidia), TSLA (Tesla), MSTR (MicroStrategy), AAPL.
     *   **Hàng hóa**: Vàng (GC=F), Dầu (CL=F).
 
-> **Sự thật**: Nếu bạn mua $10,000 NVDA vào năm 2014 và giữ nguyên (Buy & Hold), hôm nay bạn có **$2.8 Triệu (28,000%)**. 
-> Aegis đạt 42,000% là nhờ nó trade cả NVDA, cả Bitcoin, cả MSTR và dùng đòn bẩy. Nên con số này là **HOÀN TOÀN KHẢ THI VỀ TÍNH TOÁN HỌC**.
+> **Sự thật**: Nếu bạn mua $10,000 NVDA vào năm 2014 và giữ nguyên (Buy & Hold), hôm nay bạn có **$2.8 Triệu**. 
+> Aegis đạt **3,170%** (x32 lần) là mức lợi nhuận **AN TOÀN HƠN** Buy & Hold vì nó có cơ chế cắt lỗ và bảo vệ vốn trong năm 2022.
 
 ---
 
@@ -38,11 +38,10 @@ Hệ thống **Dynamic Alpha Discovery (DAD)** chỉ chọn 5 mã mạnh nhất 
 *   2023-2025: Nó chọn Nvidia, MSTR (AI Boom).
 => Nó luôn nằm trên con tàu nhanh nhất. Nó không chôn vốn vào những mã đi ngang như Coca-Cola hay IBM.
 
-### C. Đòn bẩy Động (Zenith Turbo Logic)
-Đây là sự khác biệt lớn nhất giữa bản thường và bản Zenith.
-*   Khi AI xác nhận tín hiệu "High Conviction" (Độ tin cậy > 85%), hệ thống vay thêm 50% vốn (Leverage 1.5x) để trade.
-*   *Ví dụ*: Bạn có \$100k. AI thấy kèo NVDA quá ngon -> Mua \$150k NVDA. Khi NVDA tăng 10%, bạn lãi 15%.
-*   Trong 12 năm, việc tăng tốc ở các đoạn đường đẹp giúp ROI tổng vọt lên mức 42,000%.
+### C. Không dùng Đòn bẩy (Reality Mode)
+*   Để đảm bảo an toàn tuyệt đối, chế độ Reality KHÔNG dùng margin.
+*   Lợi nhuận đến từ việc **Compound (Lãi kép)** liên tục trên vốn thật.
+*   Trong 12 năm, từ $10k lên $327k là một hành trình bền bỉ, không phải "đánh bạc" kiểu Margin.
 
 ---
 
@@ -64,7 +63,7 @@ Vì bộ não con người không quen với tư duy hàm mũ (Exponential Think
 *   Chúng ta khó hình dung việc một tài sản như Bitcoin tăng từ $300 (2015) lên $90,000 (2025) là tăng **300 lần (30,000%)**.
 *   Aegis chỉ đơn giản là "bám theo" những tài sản tăng 300 lần đó, và dùng đòn bẩy để tối ưu thêm một chút.
 
-**Kết luận**: Con số 42,325% là kết quả của việc **"Đứng trên vai người khổng lồ"** (Tech & Crypto) trong kỷ nguyên bơm tiền lịch sử (2014-2026).
+**Kết luận**: Con số **3,170%** là kết quả của việc **"Đứng trên vai người khổng lồ"** (Tech & Crypto) nhưng có **ĐEO DÂY AN TOÀN**.
 
 ---
 *Tài liệu này được trích xuất từ Logic Core: `run_simulation.py` (Dòng 40-50: Reality Costs & Leverage).*

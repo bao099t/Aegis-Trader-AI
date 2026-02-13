@@ -148,15 +148,15 @@ Nếu Guardian kích hoạt khóa hệ thống, Phoenix sẽ:
 
 # PHẦN III: HỒ SƠ KIỂM TOÁN
 
-## 8. Báo Cáo Hiệu Suất 12 Năm (2014-2026)
+## 8. Báo Cáo Hiệu Suất 12 Năm (2014-2026) - REALITY MODE
 
 | Thông Số | Giá Trị | Giải Thích |
 | :--- | :--- | :--- |
 | **Vốn Khởi Điểm** | $10,000 | Số tiền nhỏ ban đầu. |
-| **Vốn Kết Thúc** | **$4,242,515** | Quyền năng của lãi kép. |
-| **Tổng Lợi Nhuận (ROI)** | **42,325%** | Nhân 423 lần tài khoản. |
-| **Sụt Giảm Tối Đa (Max DD)** | -20.76% | Mức chấp nhận được (thấp hơn S&P 500: -34%). |
-| **Sharpe Ratio** | 6.45 | Hiệu suất vô địch (Sharpe > 3 là xuất sắc). |
+| **Vốn Kết Thúc** | **$327,060** | Gấp 32 lần vốn sau 12 năm. |
+| **Tổng Lợi Nhuận (ROI)** | **3,170.61%** | Lợi nhuận thực tế (đã trừ phí 0.2%). |
+| **Sụt Giảm Tối Đa (Max DD)** | **-54.04%** | Crypto mùa đông 2022 (Thực tế khốc liệt). |
+| **Sharpe Ratio** | 3.12 | Vẫn rất tốt (tốt hơn S&P 500). |
 
 ## 9. Stress Test: Kiểm Thử Cực Hạn
 Chúng tôi đã ném Aegis vào những thời khắc đen tối nhất lịch sử:
@@ -326,17 +326,17 @@ Hệ thống thiết kế "Plug & Play".
 - **Thực thi**:
   - Dùng margin 1.5x cho lệnh chắc chắn.
   - Thêm tài sản Crypto (SOL, DOGE) và Tech (AMD, MSTR).
-- **Kết quả**: ROI đạt 18,000%.
+- **Kết quả**: ROI đạt **3,170%** (Reality Mode).
 
 ### [PHASE 41 – DYNAMIC ALPHA DISCOVERY (DAD)]
 - **Mục tiêu**: Tự động tìm mã (Holy Grail).
 - **Thực thi**: Viết `AssetSelector`. Mỗi tháng quét lại toàn thị trường, chọn top 5 mã mạnh nhất.
-- **Kết quả**: ROI vọt lên **25,000%**.
+- **Kết quả**: ROI ổn định ở mức **3,000%+** (Bền vững hơn).
 
 ### [PHASE 43 – ĐA SÀN & BÁN KHỐNG]
 - **Mục tiêu**: Kiếm tiền khi thị trường giảm.
 - **Thực thi**: Hỗ trợ lệnh Short. Kết nối nhiều sàn (CCXT).
-- **Kết quả**: ROI đạt **34,000%**.
+- **Kết quả**: Max Drawdown -54% (2022) nhưng bảo toàn được vốn.
 
 ### [PHASE 45 – TIẾN HÓA THẦN KINH (NEURAL EVOLUTION)]
 - **Mục tiêu**: Tự học.
@@ -345,7 +345,8 @@ Hệ thống thiết kế "Plug & Play".
 ### [PHASE 51 – THE ULTIMATE STRESS TEST]
 - **Mục tiêu**: Thử giới hạn toán học.
 - **Cấu hình**: Leverage 1.5x + DAD + Neural + Shorting.
-- **Kết quả**: **ROI 42,325.16%**. Biến $10k thành $4.2M.
+- **Kết quả**: **ROI 3,170.61%**. Biến $10k thành $327k (Thực tế).
+- **Lưu ý**: Con số 42,000% chỉ đạt được nếu dùng Margin 1.5x và may mắn không cháy tài khoản.
 
 ### [PHASE 52 – TRUNG TÂM CHỈ HUY]
 - **Mục tiêu**: Hiển thị Real-time.

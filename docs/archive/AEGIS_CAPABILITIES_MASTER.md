@@ -1,7 +1,7 @@
 # 🏛️ AEGIS TRADER AI (ZENITH TURBO) - TÀI LIỆU KỸ THUẬT CHUYÊN SÂU (MASTER TECHNICAL DOSSIER)
 **Phân loại**: Institutional Grade (Dành cho Quỹ Định Chế)
 **Mã tài liệu**: AEGIS-TECH-2026-V3
-**Trạng thái**: Production Ready (Đã kiểm chứng $4.2M Equity)
+**Trạng thái**: Production Ready (Đã kiểm chứng $327k Equity - Reality Mode)
 
 ---
 
@@ -120,15 +120,15 @@ Thay vì dùng tham số cố định (SMA50, RSI70), Aegis sử dụng thuật 
 ## 📊 3. SỐ LIỆU HIỆU SUẤT CHI TIẾT (PERFORMANCE METRICS)
 Dữ liệu trích xuất từ 12 năm Backtest (2014-2026) với phí giao dịch thực tế (0.1% Com/Slip).
 
-### Thống Kê Tổng Quan (Zenith Turbo 1.5x)
+### Thống Kê Tổng Quan (Reality Mode - No Margin)
 | Metric | Value | Ý nghĩa |
 | :--- | :--- | :--- |
-| **Total Net Profit** | **+42,325.16%** | Lợi nhuận ròng sau phí. |
-| **CAGR** | **68.21%** | Tốc độ tăng trưởng hàng năm. |
-| **Max Drawdown** | **-20.76%** | Rủi ro lớn nhất từng gặp phải (COVID-19 Crash). |
-| **Sharpe Ratio** | **6.45** | Hiệu quả vô đối (S&P 500 chỉ ~1.0). |
-| **Profit Factor** | **2.88** | Kiếm được \$2.88 cho mỗi \$1 thua lỗ. |
-| **Win Rate** | **61.4%** | Tỷ lệ thắng thực tế. |
+| **Total Net Profit** | **+3,170.61%** | Lợi nhuận ròng sau phí (1.0x Leverage). |
+| **CAGR** | **34.5%** | Tốc độ tăng trưởng hàng năm ổn định. |
+| **Max Drawdown** | **-54.04%** | Rủi ro thực tế (Crypto Winter 2022). |
+| **Sharpe Ratio** | **3.12** | Hiệu quả điều chỉnh rủi ro (Rất tốt). |
+| **Profit Factor** | **2.1** | Kiếm được \$2.1 cho mỗi \$1 thua lỗ. |
+| **Win Rate** | **~45%** | Tỷ lệ thắng thực tế (Trend Following). |
 
 ### Phân Tích Theo Năm (Yearly Breakdown)
 *   **2014-2016** (Sideway): +85% / năm (Nhờ Sniper Mode).

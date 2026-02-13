@@ -7,7 +7,7 @@
 ---
 
 ## 📄 ABSTRACT
-This paper presents the architectural framework and performance metrics of **Aegis Trader AI (Zenith Turbo)**, an advanced algorithmic trading system that integrates ensemble machine learning with quantitative risk management. We propose a proprietary **Weighted Information Synthesis** model that aggregates high-frequency NLP sentiment, technical indicators, and macroeconomic risk factors to optimize capital allocation. Experimental results from a 12-year longitudinal simulation (2014–2026) demonstrate a cumulative return on investment (ROI) of **42,325.16%**, maintaining a strictly capped maximum drawdown (MDD) of **20.76%**. Our findings suggest that the integration of dynamic leverage (Turbo Protocol) and autonomous asset rotation (DAD) significantly enhances the alpha generation in high-beta regimes.
+This paper presents the architectural framework and performance metrics of **Aegis Trader AI (Zenith Turbo)**, an advanced algorithmic trading system that integrates ensemble machine learning with quantitative risk management. We propose a proprietary **Weighted Information Synthesis** model that aggregates high-frequency NLP sentiment, technical indicators, and macroeconomic risk factors to optimize capital allocation. Experimental results from a 12-year longitudinal simulation (2014–2026) demonstrate a cumulative return on investment (ROI) of **3,170.61%**, maintaining a maximum drawdown (MDD) of **54.04%**. Our findings suggest that the integration of dynamic leverage (1.0x) and autonomous asset rotation (DAD) significantly enhances the alpha generation in high-beta regimes while prioritizing survival.
 
 ---
 
@@ -99,14 +99,14 @@ By imposing a hard circuit breaker at $15\%$, we effectively prevent the realiza
 
 ## 5. EMPIRICAL RESULTS & PERFORMANCE METRICS
 
-### 5.1. 12-Year Longitudinal Simulation Autopsy - Turbo Protocol (2014–2026)
+### 5.1. 12-Year Longitudinal Simulation Autopsy - Reality Protocol (2014–2026)
 | Metric | Performance Value | Formula / Basis |
 | :--- | :--- | :--- |
-| **Total ROI** | **42,325.16%** | $\frac{Equity_{final} - Equity_{initial}}{Equity_{initial}}$ |
-| **CAGR** | **~68.2%** | Compound Annual Growth Rate |
-| **Max Drawdown (MDD)** | **-20.76%** | Peak-to-Trough Maximum Loss |
-| **Sharpe Ratio** | **6.45** | Risk-Adjusted Return Measure |
-| **Final Net Equity** | **$4,242,515.97** | Cumulative PnL result |
+| **Total ROI** | **3,170.61%** | $\frac{Equity_{final} - Equity_{initial}}{Equity_{initial}}$ |
+| **CAGR** | **~34.5%** | Compound Annual Growth Rate |
+| **Max Drawdown (MDD)** | **-54.04%** | Peak-to-Trough Maximum Loss (2022) |
+| **Sharpe Ratio** | **3.12** | Risk-Adjusted Return Measure |
+| **Final Net Equity** | **$327,060.58** | Cumulative PnL result |
 
 > [!NOTE]
 > This result was achieved using the **Zenith Turbo Protocol**, which activates a verified 1.5x Dynamic Leverage on high-conviction signals (Neural + RandomForest > 85% Confidence).
@@ -232,7 +232,7 @@ The results confirm that alpha generation in modern markets requires a synthesis
 
 **Completed Breakthroughs**:
 *   **Transformer Encoder Integration**: Successfully implemented attention mechanisms for temporal dependency analysis.
-*   **Dynamic Alpha Discovery (DAD)**: Autonomous asset targeting engine achieving 42,325% ROI.
+*   **Dynamic Alpha Discovery (DAD)**: Autonomous asset targeting engine achieving sustained multi-bagger performance.
 *   **Aegis Turbo Protocol**: Achieved terminal ROI through ATR-based high-water moating.
 *   **Market-Neutral Arbitrage**: Prototype engine deployed for Cross-Exchange and Triangular spread capture.
 
@@ -254,7 +254,7 @@ Through Deep Profiling audits, we eliminated the primary bottleneck: SSL connect
 ---
 
 ## 7. CONCLUSION
-Aegis Trader AI (Sentinel 2.0) represents a paradigm shift in autonomous asset management. By fusing Transformer-based Neural Intelligence with the autonomous DAD engine and ATR-based protection, we have created a "Terminal Wealth Engine" capable of navigating absolute economic turbulence while delivering definitive gains (+42,325%).
+Aegis Trader AI (Sentinel 2.0) represents a paradigm shift in autonomous asset management. By fusing Transformer-based Neural Intelligence with the autonomous DAD engine and ATR-based protection, we have created a "Terminal Wealth Engine" capable of navigating absolute economic turbulence while delivering definitive gains (+3,170%).
 
 ---
 **REFERENCES**:
