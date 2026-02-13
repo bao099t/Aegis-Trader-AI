@@ -27,6 +27,14 @@ class InfrastructureMonitor:
         with open(self.state_file, "w") as f:
             json.dump(stat, f, indent=4)
             
+        # Phase 59: External Heartbeat (File-based Deadman Switch)
+        try:
+            hb_path = os.path.join(os.path.dirname(self.state_file), "heartbeat.txt")
+            with open(hb_path, "w") as f:
+                f.write(str(int(time.time())))
+        except Exception as e:
+            print(f"[Mon] Failed to write external heartbeat: {e}")
+            
     def log_trades(self, active_trades):
         """
         Records active trades for the dashboard.

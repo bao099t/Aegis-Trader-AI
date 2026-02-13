@@ -59,87 +59,107 @@ def fetch_and_filter(active_tickers=None):
     results = []
     alerts = []
     
-    print(f"Fetching and Filtering from {len(SOURCES)} sources + API...")
+    # Phase 4: Zenith Turbo - Parallel Ingestion
+    from concurrent.futures import ThreadPoolExecutor, as_completed
     
-    # 1. Fetch from Yahoo API
-    api = YahooAPI()
-    api_results = api.fetch()
-    print(f"  > Yahoo API: {len(api_results)} items")
+    print(f"Fetching and Filtering from {len(SOURCES)} sources + API (Parallel Mode)...")
     
-    for item in api_results:
-        # 1. Basic Filter (Is it important?)
-        summary = item['title'] 
-        analysis = nf.evaluate(item['title'], summary)
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_source = {}
         
-        # 2. Deep Analysis (If meaningful)
-        market_analysis = analyst.analyze(item['title'], summary, analysis['sentiment'])
+        # 1. Submit Yahoo API Task
+        def fetch_yahoo_api():
+            api = YahooAPI()
+            return api.fetch()
         
-        # 2b. Source Credibility (Phase 23)
-        source_bonus = 0
-        for src, bonus in SOURCE_CREDIBILITY.items():
-            if src.lower() in item.get('source', '').lower():
-                source_bonus = bonus
-                break
+        future_api = executor.submit(fetch_yahoo_api)
+        future_to_source[future_api] = "YahooAPI"
         
-        if 'synthesis' in market_analysis:
-            market_analysis['synthesis']['score'] += source_bonus
-            if source_bonus > 0:
-                market_analysis['reason'] += f" ✅ VERIFIED SOURCE: {item.get('source')} (+{source_bonus} conv)"
-            elif source_bonus < 0:
-                market_analysis['reason'] += f" 🛡️ LOW CREDIBILITY SOURCE: Proceed with caution ({source_bonus})"
-        
-        analysis['market_analysis'] = market_analysis
-        
-        # 3. Targeting & Priority Logic
-        ticker = market_analysis.get('ticker')
-        direction = market_analysis.get('direction', 'NEUTRAL')
-        
-        priority = targeting.check_priority(ticker, active_tickers)
-        should_alert = targeting.should_alert(ticker, direction, priority)
-        
-        if priority == 'CRITICAL':
-             analysis['is_watchlist'] = True
-        else:
-             analysis['is_watchlist'] = False
-
-        item['analysis'] = analysis
+        # 2. Submit RSS Feed Tasks
+        def fetch_rss(source_conf):
+            try:
+                feed = feedparser.parse(source_conf['url'])
+                return source_conf, feed.entries
+            except Exception as e:
+                print(f"Error fetching {source_conf['name']}: {e}")
+                return source_conf, []
+                
+        for source in SOURCES:
+            future = executor.submit(fetch_rss, source)
+            future_to_source[future] = source['name']
             
-        alerts.append(item) if should_alert else None
-        results.append(item)
-
-    # 2. Fetch from RSS (Skipping deep analysis for RSS for now to save API calls, or enable if needed)
-    for source in SOURCES:
-        try:
-            feed = feedparser.parse(source['url'])
-            print(f"  > {source['name']}: {len(feed.entries)} items")
-            
-            for entry in feed.entries:
-                title = entry.title
-                link = entry.link
-                summary = getattr(entry, 'summary', '')
-                
-                # EVALUATE
-                analysis = nf.evaluate(title, summary)
-                
-                item = {
-                    "source": source['name'],
-                    "title": title,
-                    "link": link,
-                    "published": str(parse_date(entry)),
-                    "analysis": analysis
-                }
-                
-                if analysis['is_important']:
-                    alerts.append(item)
-                
-                results.append(item)
+        # 3. Process Results as they arrive
+        for future in as_completed(future_to_source):
+            src_name = future_to_source[future]
+            try:
+                if src_name == "YahooAPI":
+                    api_results = future.result()
+                    print(f"  > Yahoo API: {len(api_results)} items")
+                    for item in api_results:
+                         # 1. Basic Filter
+                         summary = item['title'] 
+                         analysis = nf.evaluate(item['title'], summary)
+                         
+                         # 2. Deep Analysis
+                         market_analysis = analyst.analyze(item['title'], summary, analysis['sentiment'])
+                         
+                         # 2b. Source Credibility
+                         source_bonus = 0
+                         for s, bonus in SOURCE_CREDIBILITY.items():
+                             if s.lower() in item.get('source', '').lower():
+                                 source_bonus = bonus
+                                 break
+                         
+                         if 'synthesis' in market_analysis:
+                             market_analysis['synthesis']['score'] += source_bonus
+                             if source_bonus > 0:
+                                 market_analysis['reason'] += f" ✅ VERIFIED SOURCE: {item.get('source')} (+{source_bonus})"
+                             elif source_bonus < 0:
+                                 market_analysis['reason'] += f" 🛡️ LOW CREDIBILITY: ({source_bonus})"
+                         
+                         analysis['market_analysis'] = market_analysis
+                         
+                         # 3. Targeting
+                         ticker = market_analysis.get('ticker')
+                         priority = targeting.check_priority(ticker, active_tickers)
+                         should_alert = targeting.should_alert(ticker, market_analysis.get('direction'), priority)
+                         
+                         analysis['is_watchlist'] = (priority == 'CRITICAL')
+                         item['analysis'] = analysis
+                         
+                         if should_alert: alerts.append(item)
+                         results.append(item)
+                         
+                else:
+                    # RSS Result
+                    source_conf, entries = future.result()
+                    print(f"  > {src_name}: {len(entries)} items")
                     
-        except Exception as e:
-            print(f" Error fetching {source['name']}: {e}")
+                    for entry in entries:
+                        title = entry.title
+                        link = entry.link
+                        summary = getattr(entry, 'summary', '')
+                        
+                        analysis = nf.evaluate(title, summary)
+                        item = {
+                            "source": source_conf['name'],
+                            "title": title,
+                            "link": link,
+                            "published": str(parse_date(entry)),
+                            "analysis": analysis
+                        }
+                        
+                        if analysis['is_important']: alerts.append(item)
+                        results.append(item)
+                        
+            except Exception as e:
+                print(f"  Error processing {src_name}: {e}")
 
-    # 3. Data Redundancy Check (Phase 26)
+    # 3. Data Redundancy Check (Phase 26) & Fallback (Phase 54)
     if len(results) == 0:
         print("  [Prophet] ⚠️ Primary sources FAILED. Activating Redundant Data Stream...")
+        
+        # Fallback A: Backup RSS
         for source in BACKUP_SOURCES:
             try:
                 feed = feedparser.parse(source['url'])
@@ -157,7 +177,44 @@ def fetch_and_filter(active_tickers=None):
                     results.append(item)
             except:
                 continue
+                
+        # Fallback B: Yahoo Finance API (Robust)
+        if len(results) == 0 and active_tickers:
+            print(f"  [Prophet] 🆘 ALL RSS DOWN. Engaging Emergency API Scan for {len(active_tickers)} assets...")
+            import yfinance as yf
+            
+            for ticker in active_tickers[:5]: # Check top 5 active to save time
+                try:
+                     t = yf.Ticker(ticker)
+                     news = t.news
+                     for n in news:
+                         title = n.get('title', '')
+                         if not title: continue
+                         
+                         analysis = nf.evaluate(title, title) # Summary is title
+                         item = {
+                             "source": f"YahooAPI({ticker})",
+                             "title": title,
+                             "link": n.get('link', ''),
+                             "published": datetime.datetime.fromtimestamp(n.get('providerPublishTime', time.time())).strftime("%Y-%m-%d %H:%M:%S"),
+                             "analysis": analysis
+                         }
+                         results.append(item)
+                         if analysis['is_important']: alerts.append(item)
+                except Exception as e:
+                    print(f"  [Prophet] API Error on {ticker}: {e}")
 
+    # Phase 59: Blind Mode Protocol
+    if len(results) == 0:
+        print("\n" + "="*60)
+        print("🚨 CRITICAL WARNING: BLIND MODE ACTIVATED 🚨")
+        print("All News Sources (RSS + API) are unreachable.")
+        print("System will reduce polling frequency to prevent IP Ban.")
+        print("Recommendations:")
+        print("1. Check Internet Connection.")
+        print("2. Verify Yahoo Finance API access.")
+        print("="*60 + "\n")
+        
     # Sort alerts by published date
     alerts.sort(key=lambda x: x['published'], reverse=True)
     return alerts, results

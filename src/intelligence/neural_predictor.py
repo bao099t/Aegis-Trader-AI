@@ -23,7 +23,7 @@ class TimeSeriesTransformer(nn.Module):
             d_model=d_model, 
             nhead=nhead, 
             dim_feedforward=d_model*4, 
-            dropout=dropout,
+            dropout=0.3, # Phase 59: Increased Dropout for Regularization (Was 0.1)
             batch_first=True
         )
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
@@ -83,7 +83,7 @@ class NeuralPredictor:
             y.append(target[i + lookback])
         return np.array(X), np.array(y)
 
-    def train(self, df_list, epochs=50, batch_size=32):
+    def train(self, df_list, epochs=50, batch_size=32, validation_split=0.2):
         print("  [Neural] Preparing datasets for training...")
         self.scaler = StandardScaler()
         
@@ -99,6 +99,12 @@ class NeuralPredictor:
         
         for df in df_list:
             scaled_data = self.scaler.transform(df[features_cols])
+            
+            # Phase 59: Data Augmentation (Noise Injection)
+            noise_factor = 0.01
+            noise = np.random.normal(0, noise_factor, scaled_data.shape)
+            scaled_data = scaled_data + noise
+            
             targets = df['Target'].values
             X_seq, y_seq = self.create_sequences(scaled_data, targets, self.lookback)
             if len(X_seq) > 0:
@@ -108,37 +114,77 @@ class NeuralPredictor:
         X = np.concatenate(all_features)
         y = np.concatenate(all_targets)
         
+        # --- TRAIN / VALIDATION SPLIT (Fix Overfitting) ---
+        # We split by time (not random shuffle) to respect time series nature
+        split_idx = int(len(X) * (1 - validation_split))
+        
+        X_train, X_val = X[:split_idx], X[split_idx:]
+        y_train, y_val = y[:split_idx], y[split_idx:]
+        
         # Convert to Tensors
-        X_tensor = torch.FloatTensor(X).to(self.device)
-        y_tensor = torch.FloatTensor(y).unsqueeze(1).to(self.device)
+        X_train_tensor = torch.FloatTensor(X_train).to(self.device)
+        y_train_tensor = torch.FloatTensor(y_train).unsqueeze(1).to(self.device)
+        
+        X_val_tensor = torch.FloatTensor(X_val).to(self.device)
+        y_val_tensor = torch.FloatTensor(y_val).unsqueeze(1).to(self.device)
         
         # Initialize Model
         self.model = TimeSeriesTransformer(self.input_dim).to(self.device)
-        optimizer = optim.AdamW(self.model.parameters(), lr=0.001)
+        # Phase 59: Weight Decay for Regularization
+        optimizer = optim.AdamW(self.model.parameters(), lr=0.001, weight_decay=1e-4)
         criterion = nn.BCELoss()
         
-        print(f"  [Neural] Training on {len(X)} sequences...")
+        print(f"  [Neural] Training on {len(X_train)} sequences | Validating on {len(X_val)} sequences")
+        
+        best_val_loss = float('inf')
+        patience = 5
+        no_improve_epoch = 0
+        
         self.model.train()
         for epoch in range(epochs):
-            permutation = torch.randperm(X_tensor.size()[0])
-            epoch_loss = 0
+            # Training Loop
+            permutation = torch.randperm(X_train_tensor.size()[0])
+            train_loss = 0
             
-            for i in range(0, X_tensor.size()[0], batch_size):
+            for i in range(0, X_train_tensor.size()[0], batch_size):
                 indices = permutation[i : i + batch_size]
-                batch_x, batch_y = X_tensor[indices], y_tensor[indices]
+                batch_x, batch_y = X_train_tensor[indices], y_train_tensor[indices]
                 
                 optimizer.zero_grad()
                 outputs = self.model(batch_x)
                 loss = criterion(outputs, batch_y)
                 loss.backward()
                 optimizer.step()
-                epoch_loss += loss.item()
+                train_loss += loss.item()
             
-            if (epoch + 1) % 10 == 0:
-                print(f"    Epoch {epoch+1}/{epochs} - Loss: {epoch_loss/len(X_tensor):.6f}")
+            avg_train_loss = train_loss / (len(X_train_tensor) / batch_size)
+            
+            # Validation Loop
+            self.model.eval()
+            with torch.no_grad():
+                val_outputs = self.model(X_val_tensor)
+                val_loss = criterion(val_outputs, y_val_tensor).item()
+            self.model.train()
+            
+            # Logging & Early Stopping
+            if (epoch + 1) % 5 == 0:
+                print(f"    Epoch {epoch+1}/{epochs} - Train Loss: {avg_train_loss:.4f} | Val Loss: {val_loss:.4f}")
+            
+            # Save Checkpoint if improved
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                torch.save(self.model.state_dict(), self.model_path)
+                no_improve_epoch = 0
+            else:
+                no_improve_epoch += 1
                 
-        torch.save(self.model.state_dict(), self.model_path)
-        print(f"  [Neural] Model saved to {self.model_path}")
+            if no_improve_epoch >= patience:
+                print(f"    [Early Stopping] No improvement for {patience} epochs. Best Val Loss: {best_val_loss:.4f}")
+                break
+                
+        # Reload best model
+        self.model.load_state_dict(torch.load(self.model_path, map_location=self.device))
+        print(f"  [Neural] Best Model saved to {self.model_path}")
 
     def predict(self, df):
         if self.model is None or self.scaler is None:

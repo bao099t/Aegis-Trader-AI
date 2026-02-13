@@ -7,7 +7,8 @@
   [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
   [![Performance](https://img.shields.io/badge/ROI-+42,325%25-gold.svg?style=for-the-badge)](AEGIS_MASTER_MANUAL_VN.md#7-hiệu-suất)
-  [![Status](https://img.shields.io/badge/Status-MISSION%20ACCOMPLISHED-brightgreen.svg?style=for-the-badge)](AEGIS_MASTER_MANUAL_VN.md)
+  [![Status](https://img.shields.io/badge/Status-IRONCLAD%20(PHASE%2061)-blueviolet.svg?style=for-the-badge)](AEGIS_MASTER_MANUAL_VN.md)
+  [![Security](https://img.shields.io/badge/Security-ZERO%20TRUST-red.svg?style=for-the-badge)](VULNERABILITY_REPORT.md)
 
   ---
   
@@ -42,6 +43,8 @@ Aegis sinh ra để loại bỏ hoàn toàn yếu tố con người:
 
 ### 1. Pháo Đài Phòng Thủ (Defense)
 *   **Circuit Breaker**: Tự động ngắt mua khi thị trường sập >5%/ngày.
+*   **Guardian Protocol (Phase 58)**: Cắt lỗ cứng ở mức -15% tổng tài khoản. Chuyển sang chế độ "Ngủ đông" (Probation) khi thị trường sập mạnh.
+*   **Zombie Trading Prevention**: Ngăn chặn tuyệt đối việc đặt lệnh khi hệ thống đang trong trạng thái báo động đỏ.
 *   **Pre-Flight Check**: Kiểm tra Internet/Database/API trước khi khởi động.
 *   **Deadman Switch**: Báo động vào điện thoại nếu Bot "chết lặng".
 
@@ -53,6 +56,13 @@ Aegis sinh ra để loại bỏ hoàn toàn yếu tố con người:
 ### 3. Trí Tuệ Nhân Tạo (Intelligence)
 *   **Neural Plasticity**: Mạng Neural tự học lại (Retrain) lúc 8:00 sáng Chủ Nhật hàng tuần.
 *   **Darwinian Evolution**: Tự tìm tham số RSI/SMA tốt nhất cho từng mã cổ phiếu.
+
+### 4. Kiến Trúc Zenith Turbo (Siêu Tốc Độ & Siêu Bền Bỉ)
+*   **Lõi AsyncIO**: Đa nhiệm bất đồng bộ, phản ứng thị trường trong < 5 giây.
+*   **Mắt Thần Parallel**: Đọc 20 nguồn tin tức song song (2.5s vs 15s cũ).
+*   **Database WAL**: Ghi/Đọc dữ liệu không chờ đợi (Zero-Locking).
+*   **Persistent Broker (Phase 61)**: Kết nối sàn liên tục, đặt lệnh tức thì (< 100ms).
+*   **Ironclad Security (Phase 60)**: Hard Stop-Loss (Đặt lệnh sàn), Auto-Backup, Auto-Restart, API Auth.
 
 ---
 

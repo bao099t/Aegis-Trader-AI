@@ -29,6 +29,16 @@ class BrokerAPI:
         
         if order:
             print(f"  [Broker] {order['status']}: {direction} {ticker} at ${entry_price}")
+            
+            # --- PHASE 59: HARD STOP-LOSS (EXCHANGE NATIVE) ---
+            # Immediately protect the position
+            qty = order.get('amount')
+            if not qty and 'quantity' in order: qty = order['quantity'] # Handle sim vs ccxt structure
+            if not qty: qty = 0 # Fallback
+            
+            self.adapter.place_stop_loss(ticker, direction, qty, stop_loss)
+            # --------------------------------------------------
+            
         return order
 
     def get_active_positions(self):

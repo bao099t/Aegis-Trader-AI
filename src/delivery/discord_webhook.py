@@ -4,10 +4,10 @@ import datetime
 
 class DiscordWebhook:
     def __init__(self):
-        # In a real app, use os.getenv("DISCORD_WEBHOOK_URL")
-        # For now, hardcoded provided by user or use placeholder
-        # MVP: User manually puts URL here or in .env
-        self.url = "https://discord.com/api/webhooks/1333887198865625088/ci0Wh6ZSJ6Lvpc_yVEE_hk3Y07E6bWAEUOwhb9BojJJRHz4CLEO-sV3c"
+        # Load from Environment variable for security
+        self.url = os.getenv("DISCORD_WEBHOOK_URL", "")
+        if not self.url:
+             print("  ⚠️ [Discord] No Webhook URL found in environment (DISCORD_WEBHOOK_URL). Alerts will fail.")
         
     def send_alert(self, news_item):
         analysis = news_item.get('analysis', {})

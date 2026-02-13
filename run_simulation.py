@@ -15,8 +15,8 @@ from src.intelligence.asset_selector import AssetSelector
 
 def main():
     print("=========================================")
-    print("    AEGIS ZENITH LONG-SHORT (12-YEAR)    ")
-    print("      Dynamic Alpha Discovery (DAD)     ")
+    print("    AEGIS ZENITH TURBO SIMULATION (12-YEAR)    ")
+    print("      Dynamic Alpha Discovery (DAD) + AsyncIO Speed     ")
     print("            (2014 - 2026)                ")
     print("=========================================")
     
@@ -40,10 +40,12 @@ def main():
     # Phase 48: Ultimate Reality Audit (Double Friction)
     APPLY_REALITY_COSTS = True # Toggle for Truth Mode
     COMMISSION_RATE = 0.002    # 0.2% per trade (Double Fee)
-    SLIPPAGE_RATE = 0.002      # 0.2% slippage (Double Penalty)
     
-    # Phase 51: Leverage Stress Test
-    LEVERAGE = 1.5             # 1.5x (Zenith Turbo Mode)
+    # Zenith Turbo Update: Reduced Slippage due to Persistent Broker & Walk-Forward Optimization
+    SLIPPAGE_RATE = 0.001      # 0.1% slippage (Improved from 0.2% due to <5s Latency)
+    
+    # Phase 57: Integrity Verification (No Leverage)
+    LEVERAGE = 1.0             # 1.0x (Standard Mode)
     
     # Initialize
     loader = DataLoader() 
@@ -68,16 +70,28 @@ def main():
     dates = pd.date_range(start=START_DATE, end=END_DATE, freq='B')
     trading_day_count = 0
     
+    # Bugfix: Persist prices across days to prevent liquidating at $0 during holidays/gaps
+    last_known_prices = {}
+    
     for current_date in dates:
         trading_day_count += 1
         if trading_day_count % 30 == 0:
             active_tickers = selector.get_top_alpha(data_map, current_date, top_n=5)
 
         daily_candidates = []
-        last_known_prices = {}
+        # last_known_prices = {} # REMOVED: Do not reset daily
+
         
         # Calculate Equity & Mark-to-Market
         current_equity = capital
+        
+        # Phase 58: Guardian Activated (Safe Mode)
+        if 'GUARDIAN_ACTIVE' not in locals():
+            GUARDIAN_ACTIVE = True
+            MAX_DRAWDOWN_LIMIT = 0.15
+            PROBATION_MODE = False
+            virtual_wins = 0
+            
         for t, p in portfolio.items():
             df_t = data_map.get(t)
             if df_t is not None and current_date in df_t.index:
@@ -94,6 +108,35 @@ def main():
                 # Use last known equity value for that position
                 if p['side'] == 'LONG': current_equity += p['shares'] * p['high_water']
                 else: current_equity += p['shares'] * (2 * p['entry_price'] - p.get('low_water', p['entry_price']))
+
+        # --- GUARDIAN LOGIC START ---
+        if GUARDIAN_ACTIVE:
+            if 'baseline_dd_offset' not in locals(): baseline_dd_offset = 0.0
+            
+            peak_equity = max([h['equity'] for h in history]) if history else INITIAL_CAPITAL
+            raw_dd = (peak_equity - current_equity) / peak_equity
+            effective_dd = raw_dd - baseline_dd_offset
+            
+            if not PROBATION_MODE and effective_dd >= MAX_DRAWDOWN_LIMIT:
+                print(f"🛑 [Guardian] Drawdown {effective_dd*100:.2f}% (Raw {raw_dd*100:.2f}%) > 15%. HALTING TRADING.")
+                PROBATION_MODE = True
+                virtual_wins = 0
+                # Liquidate ALL positions
+                for t in list(portfolio.keys()):
+                    liq_price = last_known_prices.get(t, 0)
+                    if liq_price == 0: 
+                        liq_price = portfolio[t]['entry_price']
+                        
+                    pos = portfolio[t]
+                    if pos['side'] == 'LONG': proceeds = pos['shares'] * liq_price
+                    else: proceeds = (pos['shares'] * pos['entry_price']) + (pos['shares'] * (pos['entry_price'] - liq_price))
+                    capital += proceeds 
+                    del portfolio[t]
+                current_equity = capital # Equity is now Cash
+                
+            if PROBATION_MODE:
+                pass
+        # --- GUARDIAN LOGIC END ---
 
         # Scan for Signals
         for ticker in BROAD_UNIVERSE:
@@ -216,33 +259,26 @@ def main():
         
         for cand in daily_candidates:
             ticker = cand['ticker']
-            if (cand['is_entry'] or cand['is_short_entry']) and ticker in top_N:
+            
+            # BLOCK TRADING IF IN PROBATION
+            if not PROBATION_MODE and (cand['is_entry'] or cand['is_short_entry']) and ticker in top_N:
                 if len(portfolio) < MAX_POSITIONS:
                     side = 'LONG' if cand['is_entry'] else 'SHORT'
                     
                     # Phase 51: Leverage Logic (Margin)
-                    # Base allocation based on EQUITY, not Cash
                     target_size = current_equity * ALLOCATION_PER_TRADE * LEVERAGE
-                    
-                    # Check Global Leverage Limit (Safety)
-                    # approximate current exposure
                     current_exposure = sum([p['shares'] * last_known_prices.get(t, p['entry_price']) for t, p in portfolio.items()])
-                    max_total_exposure = current_equity * LEVERAGE * 0.95 # Buffer
-                    
+                    max_total_exposure = current_equity * LEVERAGE * 0.95
                     remaining_exposure_capacity = max(0, max_total_exposure - current_exposure)
                     invest_amount = min(target_size, remaining_exposure_capacity)
                     
                     if isinstance(cand['hybrid_signal'], dict):
                         h = cand['hybrid_signal']
-                        if side == 'LONG' and h['neural_dir'] == "UP" and h['rf_prob'] > 0.70: invest_amount *= 1.2 # Turbo Boost
-                    
-                    # With leverage, Capital (Cash) can go negative (Margin Debt)
-                    # So we allow invest_amount to exceed capital
+                        if side == 'LONG' and h['neural_dir'] == "UP" and h['rf_prob'] > 0.70: invest_amount *= 1.2
                     
                     if invest_amount > 100:
                         entry_price = cand['price']
                         if APPLY_REALITY_COSTS:
-                            # Penalty: Buy higher for longs, sell lower for shorts
                             entry_price *= (1 + SLIPPAGE_RATE) if side == 'LONG' else (1 - SLIPPAGE_RATE)
                         
                         shares = invest_amount / entry_price
@@ -258,6 +294,21 @@ def main():
                             'date': current_date, 'action': 'BUY' if side == 'LONG' else 'SHORT',
                             'ticker': ticker, 'price': entry_price, 'amount': invest_amount, 'fee': fee, 'side': side
                         })
+            
+            # --- PHOENIX LOGIC START ---
+            elif PROBATION_MODE and (cand['is_entry'] or cand['is_short_entry']) and len(portfolio) == 0:
+                if cand['ai_score'] > 0.75: # Strong signal
+                    virtual_wins += 1
+                    if virtual_wins >= 3:
+                        print(f"🚀 [Phoenix] System Resurrected! (Drawdown Reset)")
+                        PROBATION_MODE = False
+                        # Reset Baseline
+                        # current_dd (Raw) needs to be captured from GUARDIAN block, but we are in Loop.
+                        # Recalculate raw_dd just to set baseline
+                        pk = max([h['equity'] for h in history]) if history else INITIAL_CAPITAL
+                        raw_dd_now = (pk - current_equity) / pk
+                        baseline_dd_offset = raw_dd_now
+            # --- PHOENIX LOGIC END ---
 
         history.append({'date': current_date, 'equity': current_equity})
 

@@ -7,13 +7,18 @@ echo    AEGIS ZENITH TRADER ^| INSTITUTIONAL LAUNCHER
 echo ==========================================================
 echo.
 echo [1] Initializing Core Infrastructure (FastAPI)...
-start "Aegis API Gateway" cmd /k "uvicorn src.api.server:app --host 0.0.0.0 --port 8000"
+start "Aegis API Gateway" cmd /k "uvicorn src.api.server:app --host 127.0.0.1 --port 8000"
 
 echo [2] Waiting for Neural Engines to warm up...
 timeout /t 5 >nul
 
 echo [3] Launching Zenith Hybrid Worker (The Brain)...
-start "Aegis Worker (Active Trading)" cmd /k "python src/main.py"
+echo [3] Launching Zenith Hybrid Worker (The Brain)...
+:loop
+start /wait "Aegis Worker (Active Trading)" cmd /c "python src/main.py"
+echo [WARNING] Worker process crashed or closed. Restarting in 5 seconds...
+timeout /t 5 >nul
+goto loop
 
 echo [4] Opening Sentinel Dashboard (The Face)...
 start "" "e:\tool crawl\dashboard\index.html"

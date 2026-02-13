@@ -37,16 +37,63 @@ class MeanReversionStrategy:
         rs = gain / loss
         df['RSI'] = 100 - (100 / (1 + rs))
         
-        # 2. ADX (14)
-        if 'ADX' not in df.columns:
-            df['ADX'] = 0 # Assume calculated elsewhere or simplified
-            
+        # 2. ADX (14) - True Calculation
+        high = df['High']
+        low = df['Low']
+        close = df['Close']
+        
+        # True Range
+        tr1 = high - low
+        tr2 = (high - close.shift(1)).abs()
+        tr3 = (low - close.shift(1)).abs()
+        tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+        
+        # Directional Movement
+        # Directional Movement
+        up_move = high - high.shift(1)
+        down_move = low.shift(1) - low
+        
+        # Fill NaNs with 0 to prevent propagation in recursive EWM
+        up_move = up_move.fillna(0)
+        down_move = down_move.fillna(0)
+        tr = tr.fillna(0)
+        
+        plus_dm = np.where((up_move > down_move) & (up_move > 0), up_move, 0.0)
+        minus_dm = np.where((down_move > up_move) & (down_move > 0), down_move, 0.0)
+        
+        # Restore index to align with tr (pandas alignment is key)
+        plus_dm = pd.Series(plus_dm, index=df.index)
+        minus_dm = pd.Series(minus_dm, index=df.index)
+        
+        # Smooth using Wilder's Smoothing (alpha = 1/n)
+        # Pandas ewm com = n - 1 matches standard EMA, but Wilder uses 1/n.
+        # Wilder acc to Pandas: alpha=1/n. 
+        # Using simple rolling for robustness/speed match with other parts (SMA) or use ewm.
+        # Standard ADX uses 14 smoothed.
+        
+        tr_smooth = pd.Series(tr).ewm(alpha=1/14, adjust=False).mean()
+        plus_dm_smooth = pd.Series(plus_dm).ewm(alpha=1/14, adjust=False).mean()
+        minus_dm_smooth = pd.Series(minus_dm).ewm(alpha=1/14, adjust=False).mean()
+        
+        # DI
+        plus_di = 100 * (plus_dm_smooth / tr_smooth)
+        minus_di = 100 * (minus_dm_smooth / tr_smooth)
+        
+        # DX
+        dx = 100 * (abs(plus_di - minus_di) / (plus_di + minus_di))
+        dx = dx.fillna(0) # Handle 0/0 case (Flat or Initial)
+        
+        # ADX
+        df['ADX'] = dx.ewm(alpha=1/14, adjust=False).mean()
+        
         # 3. Bollinger Bands (20, 2)
         df['BB_Mid'] = df['Close'].rolling(window=20).mean()
         df['BB_Std'] = df['Close'].rolling(window=20).std()
         df['BB_Upper'] = df['BB_Mid'] + (2 * df['BB_Std'])
         df['BB_Lower'] = df['BB_Mid'] - (2 * df['BB_Std'])
         
+        # Clean NaNs created by windows
+        df.dropna(inplace=True)
         return df
 
     def analyze(self, ticker):

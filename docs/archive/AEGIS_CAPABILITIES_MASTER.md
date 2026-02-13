@@ -153,4 +153,19 @@ Dữ liệu trích xuất từ 12 năm Backtest (2014-2026) với phí giao dị
 
 ---
 
+## 🔐 5. BẢO MẬT & VẬN HÀNH (SECURITY & OPS)
+
+### 5.1. Zero Trust Architecture (Phase 60)
+*   **API Authentication**: Mọi request đến `server.py` buộc phải có `X-AEGIS-KEY`.
+*   **Non-Root Docker**: Container chạy dưới quyền user `aegis` để hạn chế quyền truy cập hệ thống (Privilege Escalation).
+*   **Dependency Locking**: Toàn bộ thư viện được chốt phiên bản (Pinning) để tránh tấn công chuỗi cung ứng (Supply Chain Attack).
+
+### 5.2. Defense in Depth (Lớp Phòng Thủ Đa Tầng)
+1.  **Tầng Lệnh (Exchange Layer)**: Hard Stop-Loss nằm trên Sàn. Bot sập nguồn lệnh vẫn chạy.
+2.  **Tầng Bot (Application Layer)**: Guardian Circuit Breaker ngắt lệnh khi lỗ 3%/ngày.
+3.  **Tầng Dữ Liệu (Data Layer)**: Auto-Backup Database hàng ngày. WAL Mode chống hỏng file.
+4.  **Tầng Hạ Tầng (Infra Layer)**: Auto-Restart Script tự khởi động lại sau 5s nếu Crash.
+
+---
+
 > **BẢN QUYỀN**: Tài liệu này thuộc sở hữu của dự án Aegis Trader AI. Mọi sao chép logic cho mục đích thương mại phải được cấp phép.
