@@ -6,10 +6,44 @@ import json
 import os
 import threading
 import time
+from collections import deque
+
+import time
+from fastapi import Request, Response, Body
+from starlette.middleware.base import BaseHTTPMiddleware
+from pydantic import BaseModel
+
+class ControlCommand(BaseModel):
+    action: str # PANIC_SELL, PAUSE, RESUME, SHUTDOWN
+    secret: str # Extra layer of safety (optional)
 
 # Phase 60: API Security Hardening
 API_KEY_NAME = "X-AEGIS-KEY"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+class RateLimiter(BaseHTTPMiddleware):
+    def __init__(self, app, max_requests: int = 60, window_seconds: int = 60):
+        super().__init__(app)
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self.clients = {} # IP -> [timestamps]
+
+    async def dispatch(self, request: Request, call_next):
+        client_ip = request.client.host
+        now = time.time()
+        
+        # Clean old requests
+        if client_ip not in self.clients:
+            self.clients[client_ip] = []
+        self.clients[client_ip] = [t for t in self.clients[client_ip] if now - t < self.window_seconds]
+        
+        # Check limit
+        if len(self.clients[client_ip]) >= self.max_requests:
+            return Response("Rate limit exceeded", status_code=429)
+            
+        self.clients[client_ip].append(now)
+        response = await call_next(request)
+        return response
 
 def get_api_key(api_key_header: str = Security(api_key_header)):
     # In production, fetch this from .env or Secrets Manager
@@ -34,16 +68,44 @@ app = FastAPI(title="Aegis Sentinel API", version="1.1.0 (Secured)")
 # Enable CORS for local dashboard
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Keep open for local dashboard file
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"], # Restricted to local dashboard
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Add Rate Limiter (60 req/min/IP)
+app.add_middleware(RateLimiter, max_requests=60, window_seconds=60)
+
 DATA_DIR = "data"
 HEALTH_FILE = os.path.join(DATA_DIR, "system_health.json")
 LOG_FILE = os.path.join(DATA_DIR, "logs", "app.log")
+LOG_FILE = os.path.join(DATA_DIR, "logs", "app.log")
 TRADES_FILE = os.path.join(DATA_DIR, "active_trades.json")
+CONTROL_FILE = os.path.join(DATA_DIR, "control_signal.json")
+
+# --- CONTROL ENDPOINTS (Phase 8) ---
+@app.post("/control", dependencies=[Depends(get_api_key)])
+def send_command(cmd: ControlCommand):
+    """
+    Sends a high-priority signal to the Trading Bot via IPC (File).
+    """
+    valid_actions = ["PANIC_SELL", "PAUSE", "RESUME", "SHUTDOWN"]
+    if cmd.action not in valid_actions:
+        raise HTTPException(status_code=400, detail="Invalid Action")
+        
+    # Write Signal to File
+    signal = {
+        "action": cmd.action,
+        "timestamp": time.time(),
+        "source": "API_DASHBOARD"
+    }
+    
+    with open(CONTROL_FILE, "w") as f:
+        json.dump(signal, f)
+        
+    return {"status": "SIGNAL_SENT", "action": cmd.action}
+
 
 @app.get("/", dependencies=[Depends(get_api_key)])
 def read_root():
@@ -74,10 +136,10 @@ def get_logs(lines: int = 50):
     if os.path.exists(LOG_FILE):
         try:
             with open(LOG_FILE, "r", encoding='utf-8') as f:
-                content = f.readlines()
-                return content[-lines:]
-        except:
-            return ["Log file not readable"]
+                # Efficiently read only the last N lines using deque
+                return list(deque(f, maxlen=lines))
+        except Exception as e:
+            return [f"Log file error: {str(e)}"]
     return ["Log file not found"]
 
 if __name__ == "__main__":

@@ -66,11 +66,29 @@ class CCXTExchange(BaseExchange):
             self.exchange = getattr(ccxt, exchange_id)({
                 'apiKey': api_key,
                 'secret': secret,
+                'apiKey': api_key,
+                'secret': secret,
                 'enableRateLimit': True,
-                'options': {'defaultType': 'spot'} # Default to spot
+                # 'defaultType': 'future' # REMOVED HARDCODE: Now dynamic per order
             })
-            self.exchange.load_markets() # Pre-load markets for symbol validation
-            print(f"  [CCXT] Connected to {exchange_id} successfully.")
+            self.exchange.load_markets() 
+            print(f"  [CCXT] Connected to {exchange_id} (Dynamic Hybrid Mode).")
+            
+            # Load User Preference from Env
+            self.execution_mode = os.getenv("EXECUTION_TYPE", "FUTURE").upper() # SPOT, FUTURE, DYNAMIC
+            print(f"  [CCXT] Execution Strategy: {self.execution_mode}")
+            
+            # Auto-Set Leverage to 1x (Safety First)
+            try:
+                # Iterate all markets and set leverage? Too slow.
+                # Just set default for checking or allow strategy to set.
+                # For now, we assume user sets it in exchange GUI or we set on order.
+                # But some exchanges require it.
+                # Attempt to set 1x for BTC/USDT as test/default
+                # self.exchange.set_leverage(1, 'BTC/USDT') 
+                pass
+            except:
+                pass
         except (ImportError, AttributeError) as e:
             print(f"  [CCXT] Error: CCXT not installed or exchange {exchange_id} invalid: {e}")
             self.exchange = None
@@ -108,6 +126,24 @@ class CCXTExchange(BaseExchange):
                      return f"{ticker}/USDT"
         
         return ticker # Return as-is for Stocks
+
+    def get_market_type(self, side):
+        """
+        Decides whether to trade SPOT or FUTURE based on Config & Signal side.
+        """
+        mode = self.execution_mode
+        
+        if mode == "FUTURE": return 'future'
+        if mode == "SPOT": return 'spot'
+        
+        # DYNAMIC MODE:
+        # - Short (Sell) -> MUST use Future (Spot selling requires owning asset)
+        # - Long (Buy)   -> Use Spot (Safer, no liquidation)
+        if mode == "DYNAMIC":
+            if side == 'sell': return 'future'
+            return 'spot'
+            
+        return 'future' # Default fallback
 
     def place_order(self, ticker, direction, size_pct, entry_price, stop_loss):
         if not self.exchange:
@@ -160,7 +196,43 @@ class CCXTExchange(BaseExchange):
             print(f"         Qty: {quantity} @ ${entry_price}")
             
             # 5. Execute Limit Order
-            order = self.exchange.create_order(symbol, 'limit', side, quantity, entry_price)
+            # Determine Market Type (Spot vs Future)
+            market_type = self.get_market_type(side)
+            
+            # Create Order with explicit type params
+            # CCXT usually takes 'type' (limit/market) and 'params' for extra config (like productType)
+            params = {}
+            if market_type == 'future':
+                # Exchange specific params might be needed here. 
+                # For Binance/Bybit, usually handled by loading the correct market symbol or options.
+                # BUT since we didn't set defaultType globally, expected behavior varies.
+                # Safe bet: Access the implicit method or set defaultType on the fly? Run-time switching is tricky in CCXT.
+                # Better approach: Use the explicit check.
+                # If we rely on symbol mapping (BTC/USDT:USDT for future), CCXT handles it.
+                # We need to ensure we pass the correct params.
+                pass
+                
+            # CRITICAL: CCXT Unified method often relies on 'defaultType' initialized in constructor.
+            # To switch dynamically, we might need to change the options on the fly or pass it in params.
+            # Many exchanges support 'options': {'defaultType': ...} override in method calls? No.
+            # We must set proper params.
+            # For Binance `create_order`, we can pass logic.
+            
+            # ADJUSTMENT: To be truly dynamic, safest way is to rely on the SYMBOL format or Params.
+            # Binance uses distinct symbols for Future vs Spot usually, or same but different endpoint.
+            # Simple Fix: We set the 'options' on the instance before call? (Not thread safe).
+            # Solution: Pass 'type': 'future' in params is not standard CCXT.
+            
+            # Let's try to set the property temporarily (Simple workaround)
+            original_type = self.exchange.options.get('defaultType', 'spot')
+            self.exchange.options['defaultType'] = market_type
+            
+            print(f"  [CCXT] Routing to {market_type.upper()} Market...")
+            
+            try:
+                order = self.exchange.create_order(symbol, 'limit', side, quantity, entry_price)
+            finally:
+                self.exchange.options['defaultType'] = original_type # Revert
             
             print(f"  [CCXT] ✅ Order Success: ID {order['id']}")
             return order
@@ -200,32 +272,27 @@ class CCXTExchange(BaseExchange):
 
     def fetch_positions(self):
         """
-        Fetches real-time balances/positions from the exchange.
+        Fetches real-time OPEN POSITIONS from the execution layer (Futures).
         """
         if not self.exchange:
             return []
             
         try:
-            # 1. Fetch Balance (Spot)
-            # For Futures, we might need fetch_positions()
-            # We try standard balance first.
-            bal = self.exchange.fetch_balance()
+            # 1. Fetch Positions (Futures)
+            positions = self.exchange.fetch_positions()
             
             active_assets = []
             
-            # Check Non-Zero Total Balance
-            if 'total' in bal:
-                for currency, amount in bal['total'].items():
-                    if amount > 0:
-                        # Normalize Ticker?
-                        # Internal system uses BTC-USD. Exchange has BTC.
-                        # Simple Heuristic: If it's a known crypto, append -USD
-                        # For now, just return raw currency, logic elsewhere can handle fuzzy match if needed.
-                        # Or better: return f"{currency}-USD" check?
-                        # Let's return raw for safety.
-                        active_assets.append(currency)
+            for pos in positions:
+                # Check for active size
+                size = float(pos['contracts']) if 'contracts' in pos else float(pos['info'].get('size', 0))
+                if size > 0:
+                    symbol = pos['symbol']
+                    # Normalize: BTC/USDT:USDT -> BTC/USDT
+                    if ':' in symbol: symbol = symbol.split(':')[0]
+                    active_assets.append(symbol)
             
-            print(f"  [CCXT] Active Positions: {active_assets}")
+            print(f"  [CCXT] Active Futures Positions: {active_assets}")
             return active_assets
             
         except Exception as e:

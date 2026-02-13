@@ -7,8 +7,8 @@
   [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
   [![Performance](https://img.shields.io/badge/ROI-+42,325%25-gold.svg?style=for-the-badge)](AEGIS_MASTER_MANUAL_VN.md#7-hiệu-suất)
-  [![Status](https://img.shields.io/badge/Status-IRONCLAD%20(PHASE%2061)-blueviolet.svg?style=for-the-badge)](AEGIS_MASTER_MANUAL_VN.md)
-  [![Security](https://img.shields.io/badge/Security-ZERO%20TRUST-red.svg?style=for-the-badge)](VULNERABILITY_REPORT.md)
+  [![Status](https://img.shields.io/badge/Status-EVOLVED%20(PHASE%208)-neon.svg?style=for-the-badge)](AEGIS_MASTER_MANUAL_VN.md)
+  [![Security](https://img.shields.io/badge/Security-ZERO%20TRUST-red.svg?style=for-the-badge)](docs/SECURITY_OPERATIONS.md)
 
   ---
   
@@ -57,7 +57,12 @@ Aegis sinh ra để loại bỏ hoàn toàn yếu tố con người:
 *   **Neural Plasticity**: Mạng Neural tự học lại (Retrain) lúc 8:00 sáng Chủ Nhật hàng tuần.
 *   **Darwinian Evolution**: Tự tìm tham số RSI/SMA tốt nhất cho từng mã cổ phiếu.
 
-### 4. Kiến Trúc Zenith Turbo (Siêu Tốc Độ & Siêu Bền Bỉ)
+### 4. Giao Diện & Điều Khiển (Professional)
+*   **Cyberpunk Dashboard**: Giao diện quản lý trực quan (React + Vite).
+*   **Dockerized**: Triển khai dễ dàng trên mọi VPS/Server.
+*   **Dynamic Mode**: Tự động chuyển đổi Spot/Futures linh hoạt.
+
+### 5. Kiến Trúc Zenith Turbo (Siêu Tốc Độ & Siêu Bền Bỉ)
 *   **Lõi AsyncIO**: Đa nhiệm bất đồng bộ, phản ứng thị trường trong < 5 giây.
 *   **Mắt Thần Parallel**: Đọc 20 nguồn tin tức song song (2.5s vs 15s cũ).
 *   **Database WAL**: Ghi/Đọc dữ liệu không chờ đợi (Zero-Locking).
@@ -81,14 +86,13 @@ Aegis sinh ra để loại bỏ hoàn toàn yếu tố con người:
 ## �️ Cài Đặt (3 Bước Đơn Giản)
 
 ```bash
-# 1. Clone dự án
-git clone https://github.com/bao099t/Aegis-Trader-AI.git
-
-# 2. Cài đặt thư viện
-pip install -r requirements.txt
-
-# 3. Khởi chạy (Windows)
+# CÁCH 1: CHẠY TRỰC TIẾP (WINDOWS)
 start_all.bat
+
+# CÁCH 2: CHẠY QUA DOCKER (KHUYẾN NGHỊ)
+docker-compose up -d
+# -> Dashboard tại: http://localhost:3000
+# -> API tại: http://localhost:8000
 ```
 
 ---

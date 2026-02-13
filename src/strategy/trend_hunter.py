@@ -2,30 +2,99 @@ import pandas as pd
 import yfinance as yf
 from datetime import datetime, timedelta
 
+try:
+    import ccxt
+except ImportError:
+    ccxt = None
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 class TrendHunterStrategy:
     """
-    Production implementation of the 'Trend Hunter' strategy.
-    
-    Logic (Long-Only - Balanced Mode):
-    - Entry: Price > SMA200 & Price > SMA50 & ADX > 25 & RSI < 70
-    - Exit: Price < SMA50
-    
-    Assets: Bitcoin, Gold, US Tech Stocks.
+    AEGIS TREND HUNTER (Phase 7.1)
+    Hybrid Strategy:
+    - Mode 1: Historical Data (YFinance) -> For Backtesting/Simulation
+    - Mode 2: Real-time Data (CCXT) -> For Live Trading
+    Identifies strong momentum using ADX, RSI, and Moving Averages.
     """
     
     def __init__(self):
         print("  [Strategy] Initialized Trend Hunter (Long-Only)")
+        
+        # Dynamic Params (Phase 5)
+        self.SMA_FAST = int(os.getenv("STRATEGY_SMA_FAST", 50))
+        self.SMA_SLOW = int(os.getenv("STRATEGY_SMA_SLOW", 200))
+        self.ADX_THRESH = int(os.getenv("STRATEGY_ADX_THRESH", 25))
+        self.RSI_THRESH = int(os.getenv("STRATEGY_RSI_THRESH", 70))
+        
+        self.mode = os.getenv("TRADING_MODE", "PAPER").upper()
+        self.exchange = None
+        
+        if self.mode == "LIVE":
+            exchange_id = os.getenv("EXCHANGE_ID", "binance") # Default Binance
+            api_key = os.getenv("EXCHANGE_API_KEY")
+            secret = os.getenv("EXCHANGE_SECRET")
+            
+            print(f"🚀 [TrendHunter] LIVE MODE ACTIVATED. Connecting to {exchange_id}...")
+            
+            if ccxt is None:
+                print("❌ [TrendHunter] FATAL: 'ccxt' library not found. Install via pip install ccxt.")
+                self.exchange = None
+            else:
+                try:
+                    exchange_class = getattr(ccxt, exchange_id)
+                    self.exchange = exchange_class({
+                        'apiKey': api_key,
+                        'secret': secret,
+                        'enableRateLimit': True,
+                        'options': {'defaultType': 'future'} 
+                    })
+                except Exception as e:
+                    print(f"❌ [TrendHunter] CCXT Connection Failed: {e}. Fallback to YFinance.")
+                    self.exchange = None 
+        else:
+            print("🛡️ [TrendHunter] PAPER MODE. Using YFinance for delayed data.")
 
     def fetch_data(self, ticker):
         """
-        Fetches last 300 days of data to calculate SMA200 and indicators.
+        Unified Data Fetcher (CCXT Live or YFinance Sim)
         """
+        # 1. LIVE MODE (CCXT)
+        if self.exchange and self.mode == "LIVE":
+            try:
+                # Map ticker to symbol (e.g., BTC -> BTC/USDT)
+                # Simple heuristic: Append /USDT if not present
+                if "/" not in ticker: symbol = f"{ticker}/USDT"
+                else: symbol = ticker
+                
+                # Fetch OHLCV
+                # timeframe '1h' matches the yfinance default usage or similar
+                ohlcv = self.exchange.fetch_ohlcv(symbol, timeframe='1h', limit=200) # Need enough for SMA
+                
+                # Convert to DataFrame
+                df = pd.DataFrame(ohlcv, columns=['timestamp', 'Open', 'High', 'Low', 'Close', 'Volume'])
+                df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+                df.set_index('timestamp', inplace=True)
+                return df
+            except Exception as e:
+                print(f"⚠️ [TrendHunter] CCXT Fetch Error for {ticker}: {e}. Falling back...")
+        
+        # 2. FALLBACK / SIM MODE (YFinance)
         end_date = datetime.now()
         start_date = end_date - timedelta(days=400) # Buffer for SMA200
         
         try:
             # yfinance download
-            df = yf.download(ticker, start=start_date, end=end_date, interval="1d", progress=False, auto_adjust=True)
+            # Ticker adjustment for Yahoo (Crypto usually needs -USD)
+            yf_ticker = ticker
+            if not ticker.endswith("-USD") and not ticker.endswith("=X") and not "/" in ticker:
+                 # Assumption: Input is "BTC", output "BTC-USD"
+                 yf_ticker = f"{ticker}-USD"
+
+            df = yf.download(yf_ticker, start=start_date, end=end_date, interval="1d", progress=False, auto_adjust=True)
             
             if df.empty:
                 return None
@@ -60,9 +129,9 @@ class TrendHunterStrategy:
         low = df['Low']
         
         # SMAs
-        df['SMA_20'] = close.rolling(window=20).mean()
-        df['SMA_50'] = close.rolling(window=50).mean()
-        df['SMA_200'] = close.rolling(window=200).mean()
+        df['SMA_20'] = close.rolling(window=20).mean() # Still useful for context
+        df['SMA_FAST'] = close.rolling(window=self.SMA_FAST).mean()
+        df['SMA_SLOW'] = close.rolling(window=self.SMA_SLOW).mean()
         
         # RSI 14
         delta = close.diff()
@@ -167,34 +236,67 @@ class TrendHunterStrategy:
             return "HOLD", details
         # ---------------------------------------------------------
         
-        # 🟢 LONG LOGIC (Zenith)
-        # Use Dynamic RSI Threshold
-        if is_bull_trend and strong_momentum and rsi < RSI_THRESH:
+        # LOGIC:
+        # 0. Load DNA (Evolutionary Override)
+        # Check if this ticker has evolved parameters from last night
+        from src.intelligence.darwin import Darwin
+        darwin = Darwin()
+        dna = darwin.load_dna(ticker)
+        
+        # Use DNA if available, else fallback to Env/Defaults
+        effective_sma_fast = dna.get('sma_fast', self.SMA_FAST)
+        effective_sma_slow = dna.get('sma_slow', self.SMA_SLOW)
+        effective_rsi_thresh = dna.get('rsi_threshold', self.RSI_THRESH)
+        effective_adx_thresh = dna.get('adx_threshold', self.ADX_THRESH)
+        
+        # 1. Recalculate Dynamic Indicators if DNA differs from Default
+        # (Standard columns SMA_FAST/SLOW in df are based on Env vars calculated in calculate_indicators)
+        # For precision, we calculate the specific DNA MA here.
+        
+        last_close = df['Close'].iloc[-1]
+        
+        # Dynamic MAs
+        # If effective params match default, we use df columns to save time
+        if effective_sma_fast == self.SMA_FAST and effective_sma_slow == self.SMA_SLOW:
+            sma_fast_val = df['SMA_FAST'].iloc[-1]
+            sma_slow_val = df['SMA_SLOW'].iloc[-1]
+        else:
+            # DNA override -> Recalc
+            sma_fast_val = df['Close'].rolling(window=effective_sma_fast).mean().iloc[-1]
+            sma_slow_val = df['Close'].rolling(window=effective_sma_slow).mean().iloc[-1]
+
+        # 2. Evaluate Signals
+        # Trend: Close > SMA_SLOW
+        # Momentum: Close > SMA_FAST
+        # Strength: ADX > ADX_THRESH
+        # Value: RSI < RSI_THRESH
+        
+        if (last_close > sma_slow_val and 
+            last_close > sma_fast_val and 
+            df['ADX'].iloc[-1] > effective_adx_thresh and 
+            df['RSI'].iloc[-1] < effective_rsi_thresh):
+            
             signal = "BUY"
-            reason = f"Zenith Bull (Price > SMA{SMA_FAST_LEN}) + Momentum + DNA RSI<{RSI_THRESH}"
+            reason = f"Zenith Bull (DNA: SMA{effective_sma_fast}/{effective_sma_slow}, RSI<{effective_rsi_thresh})"
             
-        # 🔴 SHORT LOGIC (Vulture)
-        elif is_bear_trend and strong_momentum and rsi > 45: # Keep Vulture static for now or evolve later
-            signal = "SHORT"
-            reason = f"Vulture Hedge (Price < SMA{SMA_FAST_LEN})"
-            
-        # 🔵 EXIT LOGIC
-        if signal == "HOLD" and is_bull_trend and current_price < sma20:
+        # Exit Condition
+        elif last_close < sma_fast_val:
              signal = "SELL"
-             reason = "Trend Broken (Price < SMA20)"
+             reason = f"Trend Broken (< SMA{effective_sma_fast})"
              
-        if signal == "HOLD" and is_bear_trend and current_price > sma20:
-             signal = "COVER"
-             reason = "Bear Baseline Broken (Price > SMA20)"
-             
+        # 🔵 EXIT LOGIC
+        # Logic (Long-Only - Balanced Mode):
+        # - Entry: Price > SMA{SLOW} & Price > SMA{FAST} & ADX > {ADX} & RSI < {RSI}
+        # - Exit: Price < SMA{FAST}
+              
         details = {
-            "price": current_price,
-            "sma_dynamic": sma_dynamic,
-            "sma200": sma200,
-            "rsi": rsi,
-            "adx": adx,
+            "price": last_close,
+            "sma_fast": sma_fast_val,
+            "sma_slow": sma_slow_val,
+            "rsi": df['RSI'].iloc[-1],
+            "adx": df['ADX'].iloc[-1],
             "reason": reason,
-            "dna": dna if dna else "Default"
+            "dna": dna if dna else "Default (Env)"
         }
         
         return signal, details

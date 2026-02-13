@@ -1,18 +1,21 @@
 import random
 import numpy as np
 
-class YieldAggregator:
+class SimulationYieldAggregator:
     """
-    AEGIS DEFI YIELD AGGREGATOR (Phase 7.2)
-    Optimizes asset swaps across liquidity pools using AI-driven slippage prediction.
+    AEGIS DEFI YIELD SIMULATOR (Mock Environment)
+    This is a SIMULATION module. It does NOT connect to real blockchains.
+    Used for strategy testing and UI demonstration only.
     """
     def __init__(self, pools=None):
         self.pools = pools or {
-            "UNISWAP_V3": {"liquidity": 10000000, "fee": 0.003},
-            "SUSHISWAP": {"liquidity": 5000000, "fee": 0.003},
-            "CURVE": {"liquidity": 50000000, "fee": 0.0004}
+            "UNISWAP_V3 (SIM)": {"liquidity": 10000000, "fee": 0.003},
+            "SUSHISWAP (SIM)": {"liquidity": 5000000, "fee": 0.003},
+            "CURVE (SIM)": {"liquidity": 50000000, "fee": 0.0004}
         }
         self.gas_price_gwei = 20 # Mock gas price
+        print("\n⚠️  [DeFi] WARNING: Running in SIMULATION MODE. Zero real value at risk.")
+        print("   [DeFi] No wallet connected. Using Mock Liquidity Pools.\n")
 
     def predict_slippage(self, amount, pool_name):
         """
@@ -74,5 +77,5 @@ class YieldAggregator:
             print(f"Iteration {i}: [DEFI] Best Execution via {pool}. Net Output: {output:.4f}\n")
 
 if __name__ == "__main__":
-    aggregator = YieldAggregator()
+    aggregator = SimulationYieldAggregator()
     aggregator.simulate_yield()

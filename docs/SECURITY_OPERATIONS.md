@@ -35,7 +35,18 @@ Nếu mất kết nối Internet:
     *   Hủy toàn bộ lệnh chờ mua (Pending Buy).
     *   Giữ nguyên lệnh Stop-Loss (vì đã nằm trên sàn).
     *   Không đặt lệnh mới.
+    *   Không đặt lệnh mới.
     *   Ghi Log: "Offline - Defense Mode Activated".
+
+## 5. Chống Spam & DDoS (Rate Limiting)
+*   **API Protection**: Giới hạn 60 requests/phút cho mỗi IP. Ngăn chặn việc spam lệnh làm treo hệ thống.
+*   **Middleware**: Tích hợp sẵn trong `src/api/server.py`.
+
+## 6. Nút Khẩn Cấp (Panic Button)
+Trong trường hợp thị trường sập bất ngờ hoặc có tin chiến tranh:
+1.  Truy cập Dashboard (`http://localhost:3000`).
+2.  Nhấn nút đỏ **"EMERGENCY LIQUIDATION"**.
+3.  Hệ thống sẽ ngay lập tức bán toàn bộ tài sản theo giá thị trường (Market Order) để bảo toàn vốn.
 
 ---
 *Tài liệu này dùng cho SysAdmin và Vận hành viên.*

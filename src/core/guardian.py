@@ -20,8 +20,14 @@ class Guardian:
         self.CONSECUTIVE_LOSS_LIMIT = 5 
         self.HARD_CAP_ALLOCATION = 15.0 
         self.anti_manip = AntiManipulationFilter() # Phase 44
+        self.TOTAL_MAX_DRAWDOWN_LIMIT = 30.0 # GLOBAL HARD STOP
         self.STATE_FILE = "data/guardian_state.json"
+        
+        # Load State
         self._load_state()
+
+        if self.state == "PERMANENT_LOCKDOWN":
+            print("🚨 GUARDIAN: SYSTEM IS IN PERMANENT LOCKDOWN. MANUAL INTERVENTION REQUIRED.")
 
     def _load_state(self):
         if os.path.exists(self.STATE_FILE):
@@ -30,17 +36,20 @@ class Guardian:
                     data = json.load(f)
                     self.state = data.get('state', 'ACTIVE')
                     self.baseline_drawdown = data.get('baseline_drawdown', 0.0)
+                    self.global_peak_equity = data.get('global_peak_equity', 100.0) # Default to 100 base
             except:
                 self.state = 'ACTIVE'
                 self.baseline_drawdown = 0.0
+                self.global_peak_equity = 100.0
         else:
             self.state = 'ACTIVE'
             self.baseline_drawdown = 0.0
+            self.global_peak_equity = 100.0
 
-    def _save_state(self):
         data = {
             'state': self.state,
-            'baseline_drawdown': self.baseline_drawdown
+            'baseline_drawdown': self.baseline_drawdown,
+            'global_peak_equity': self.global_peak_equity
         }
         with open(self.STATE_FILE, 'w') as f:
             json.dump(data, f)
@@ -64,6 +73,9 @@ class Guardian:
         db = db_setup.SessionLocal()
         try:
             # 0. Check State
+            if self.state == "PERMANENT_LOCKDOWN":
+                 return False, "⛔ SYSTEM LOCKED: TOTAL DRAWDOWN LIMIT EXCEEDED.", 0
+
             if self.state == "PROBATION":
                 return False, "PROBATION: Virtual Trade Only", 0
                 
@@ -127,29 +139,42 @@ class Guardian:
         """Stops trading if performance sucks."""
         tracker = PerformanceTracker(db)
         
-        # Drawdown Breaker
-        dd_state = tracker.get_drawdown_state()
-        curr_dd = dd_state['current_drawdown']
+        # 1. Update Global Peak Check
+        # We need current equity relative to base 100
+        # This is strictly theoretical based on pnl sum, in reality we'd pull NAV
+        # For now, we rely on Performance Tracker's equity curve simulation
         
-        # Effective Drawdown = Actual - Baseline
-        # Ensures that after reset, we start fresh
+        # Calculate Global Drawdown
+        # Current Equity = 100 * product(1 + pnl) ... handled by tracker
+        equity_stats = tracker.get_drawdown_state()
+        
+        # We assume tracker.get_drawdown_state() calculates Max DD from Start
+        # current_drawdown is from Peer Peak.
+        
+        # NOTE: To implement "Infinite Loss" protection, we need to ensure that 
+        # resetting baseline_drawdown DOES NOT reset our concept of "Global Peak".
+        
+        # If current drawdown (from tracker) > Total Limit, we LOCK.
+        # But wait, tracker calculates from start of DB. So it IS global?
+        # Yes, tracker uses ALL history.
+        # The issue was 'baseline_drawdown' in check_circuit_breakers masked it?
+        
+        curr_dd = equity_stats['current_drawdown']
+        
+        # GLOBAL KILL SWITCH
+        if curr_dd >= self.TOTAL_MAX_DRAWDOWN_LIMIT:
+             self.state = "PERMANENT_LOCKDOWN"
+             self._save_state()
+             return False, f"💀 FATAL: Total Drawdown {curr_dd}% > Limit {self.TOTAL_MAX_DRAWDOWN_LIMIT}%. SYSTEM LOCKED."
+
+        # SESSION / LOCAL BREAKER
+        # Effective Drawdown = Actual - Baseline (The "Reset" logic)
         effective_dd = max(0, curr_dd - self.baseline_drawdown)
         
         if effective_dd >= self.MAX_DRAWDOWN_LIMIT:
              return False, f"Effective Drawdown {effective_dd:.1f}% (Actual {curr_dd:.1f}%) > Limit {self.MAX_DRAWDOWN_LIMIT}%"
         
         # Consecutive Loss Breaker
-        # This one resets naturally if we win, so no baseline needed?
-        # Actually if we have 5 losses, we enter probation.
-        # If we win 3 virtual, we reset.
-        # But real history still has 5 losses. 
-        # get_recent_performance fetches REAL trades.
-        # So we need to ignore OLD losses or Baseline this too?
-        # Simpler: Consecutive Loss only looks at alerts AFTER the last Reset?
-        # Or we rely on Phoenix to check virtual trades, and once we reset, we hope the NEXT real trade is a win.
-        # If the next real trade is a loss, streak becomes 6. Trigger again.
-        # That's fine.
-        
         recent = tracker.get_recent_performance(n=self.CONSECUTIVE_LOSS_LIMIT)
         if len(recent) >= self.CONSECUTIVE_LOSS_LIMIT:
             losses = [p for p in recent if p < 0]

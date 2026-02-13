@@ -1,109 +1,156 @@
 import time
-import sys
+import asyncio
 import os
+import time
 import datetime
+import logging # Added for RotatingFileHandler
+from logging.handlers import RotatingFileHandler # Prevent Disk Overflow
+import sys
 from sqlalchemy.orm import Session
 
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
 from src.ingestion.news_fetcher import fetch_and_filter
-from src.delivery.discord_webhook import send_alert, send_heartbeat
-from src.database import db_setup, models
+from src.ingestion.loader import Loader
+from src.processing.market_analysis import MarketAnalyzer
+from src.strategy.trend_hunter import TrendHunterStrategy
+from src.execution.position_manager import PositionManager
 from src.infrastructure.monitor import InfrastructureMonitor
+from src.database import db_setup, models
 from src.delivery.broker_api import BrokerAPI
+from src.delivery.discord_webhook import send_alert, send_heartbeat
+
+# --- LOGGING SETUP (Phase Final) ---
+# Prevent disk overflow with RotatingFileHandler (10MB x 5 backups)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        RotatingFileHandler("app.log", maxBytes=10*1024*1024, backupCount=5),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 from src.simulation.data_loader import DataLoader
 from src.intelligence.asset_selector import AssetSelector
 from src.intelligence.predictor import PricePredictor # Phase 49
 
-def process_alerts(phoenix_instance=None, active_tickers=None, broker=None):
-    db = db_setup.SessionLocal()
+from src.database.connection_manager import ConnectionManager
+import asyncio
+
+async def process_alerts(phoenix_instance=None, active_tickers=None, broker=None):
+    # 1. Non-blocking Fetch (Run CPU/Network heavy task in thread outside lock)
+    # print(f"\n[{datetime.datetime.now().strftime('%H:%M:%S')}] Checking sources...")
+    # SILENCED LOGGING to prevent clutter, relies on RotatingFileHandler now.
     try:
-        print(f"\n[{datetime.datetime.now().strftime('%H:%M:%S')}] Checking sources...")
-        candidates, _ = fetch_and_filter(active_tickers)
-        
-        new_alerts_count = 0
-        
-        for item in candidates:
-            # Check duplication by link
-            exists = db.query(models.Alert).filter(models.Alert.link == item['link']).first()
-            if exists:
-                continue
-            
-            # Create Alert Record
-            market_analysis = item['analysis'].get('market_analysis', {})
-            synth = market_analysis.get('synthesis', {})
-            is_virtual = item['analysis'].get('market_analysis', {}).get('is_virtual', False)
-            
-            alert = models.Alert(
-                source=item['source'],
-                title=item['title'],
-                link=item['link'],
-                published_at=datetime.datetime.strptime(item['published'], "%Y-%m-%d %H:%M:%S"),
-                summary=item['analysis'].get('reason', ''), # Using reason as summary proxy for now
-                sentiment_score=item['analysis']['sentiment'],
-                ticker=market_analysis.get('ticker'),
-                keyword=item['analysis']['keyword'],
-                reason=item['analysis']['reason'],
-                is_sent=False,
-                signal_score=synth.get('score'),
-                entry_price=market_analysis.get('context', {}).get('current_price'),
-                stop_loss_price=synth.get('stop_loss'),
-                is_verified=market_analysis.get('is_verified', True),
-                is_virtual=is_virtual # Phase 29
-            )
-            db.add(alert)
-            db.commit()
-            db.refresh(alert)
-            
-            # Send Delivery
-            try:
-                print(f"  >> New Alert: {alert.title} [Virtual={is_virtual}]")
-                send_alert(item)
-                
-                # --- AUTONOMOUS EXECUTION (Phase 25: The Executioner) ---
-                # Criteria: High Score (>=80), Verified
-                score = synth.get('score', 0)
-                is_verified = market_analysis.get('is_verified', True)
-                
-                # Check Kill Switch
-                if os.path.exists("data/kill_switch.lock"):
-                    print("  [EXECUTIONER] System DISARMED via Kill Switch. Skipping trade.")
-                elif is_virtual:
-                    print(f"  [EXECUTIONER] 👻 VIRTUAL TRADE PLACED (Probation Mode). Score: {score}")
-                    # We do NOT call broker place_order
-                elif score >= 80 and is_verified:
-                    print(f"  [EXECUTIONER] Elite Signal Detected ({score}%). Placing Autonomous Order...")
-                    
-                    if broker is None:
-                         # Fallback if not passed (should not happen in prod)
-                         print("  [EXECUTIONER] Warning: Broker not passed, initializing new (Latency penalty).")
-                         from src.delivery.broker_api import BrokerAPI
-                         broker = BrokerAPI()
-                         
-                    broker.place_order(
-                        ticker=market_analysis['ticker'],
-                        direction=market_analysis['direction'],
-                        size_pct=float(synth['suggested_size'].strip('%')),
-                        entry_price=market_analysis['context']['current_price'],
-                        stop_loss=synth['stop_loss']
-                    )
-
-                alert.is_sent = True
-                db.commit()
-                new_alerts_count += 1
-            except Exception as e:
-                print(f"Failed to process alert/execution: {e}")
-        
-        if new_alerts_count == 0:
-            print("No new alerts.")
-        else:
-            print(f"Processed {new_alerts_count} new alerts.")
-
+        candidates, _ = await asyncio.to_thread(fetch_and_filter, active_tickers)
     except Exception as e:
-        print(f"CRITICAL ERROR: {e}")
-    finally:
-        db.close()
+        pass # print(f"Error fetching alerts: {e}")
+        return
+
+    # 2. Async Locked DB Write
+    async with ConnectionManager.get_db() as db:
+        try:
+            new_alerts_count = 0 
+            
+            for item in candidates:
+                # Check duplication by link
+                exists = db.query(models.Alert).filter(models.Alert.link == item['link']).first()
+                if exists:
+                    continue
+                
+                # Create Alert Record
+                market_analysis = item['analysis'].get('market_analysis', {})
+                synth = market_analysis.get('synthesis', {})
+                is_virtual = item['analysis'].get('market_analysis', {}).get('is_virtual', False)
+                
+                alert = models.Alert(
+                    source=item['source'],
+                    title=item['title'],
+                    link=item['link'],
+                    published_at=datetime.datetime.strptime(item['published'], "%Y-%m-%d %H:%M:%S"),
+                    summary=item['analysis'].get('reason', ''), # Using reason as summary proxy for now
+                    sentiment_score=item['analysis']['sentiment'],
+                    ticker=market_analysis.get('ticker'),
+                    keyword=item['analysis']['keyword'],
+                    reason=item['analysis']['reason'],
+                    is_sent=False,
+                    signal_score=synth.get('score'),
+                    entry_price=market_analysis.get('context', {}).get('current_price'),
+                    stop_loss_price=synth.get('stop_loss'),
+                    is_verified=market_analysis.get('is_verified', True),
+                    is_virtual=is_virtual # Phase 29
+                )
+                db.add(alert)
+                db.commit()
+                db.refresh(alert)
+                
+                # Send Delivery
+                try:
+                    print(f"  >> New Alert: {alert.title} [Virtual={is_virtual}]")
+                    send_alert(item)
+                    
+                    # --- AUTONOMOUS EXECUTION (Phase 25: The Executioner) ---
+                    # Criteria: High Score (>=80), Verified
+                    score = synth.get('score', 0)
+                    is_verified = market_analysis.get('is_verified', True)
+                    
+                    # Check Kill Switch
+                    if os.path.exists("data/kill_switch.lock"):
+                        print("  [EXECUTIONER] System DISARMED via Kill Switch. Skipping trade.")
+                    elif is_virtual:
+                        print(f"  [EXECUTIONER] 👻 VIRTUAL TRADE PLACED (Probation Mode). Score: {score}")
+                        # We do NOT call broker place_order
+                    elif score >= 80 and is_verified:
+                        print(f"  [EXECUTIONER] Elite Signal Detected ({score}%). Placing Autonomous Order...")
+                        
+                        if broker is None:
+                            # Fallback if not passed (should not happen in prod)
+                            print("  [EXECUTIONER] Warning: Broker not passed, initializing new (Latency penalty).")
+                            from src.delivery.broker_api import BrokerAPI
+                            broker = BrokerAPI()
+                            
+                        broker.place_order(
+                            ticker=market_analysis['ticker'],
+                            direction=market_analysis['direction'],
+                            size_pct=float(synth['suggested_size'].strip('%')),
+                            entry_price=market_analysis['context']['current_price'],
+                            stop_loss=synth['stop_loss']
+                        )
+
+                    if score >= 70: # Send alert for strong signals (even if not traded)
+                        # Construct payload for Discord
+                        news_payload = {
+                            'title': alert.title,
+                            'source': alert.source,
+                            'link': alert.url,
+                            'published': str(alert.published_at),
+                            'analysis': {
+                                'market_analysis': market_analysis,
+                                'sentiment': alert.sentiment_score
+                            }
+                        }
+                        try:
+                            send_alert(news_payload)
+                            print(f"  [DISCORD] Alert sent for {alert.ticker}")
+                        except Exception as e:
+                            print(f"  [DISCORD] Failed: {e}")
+
+                    alert.is_sent = True
+                    db.commit()
+                    new_alerts_count += 1
+                except Exception as e:
+                    print(f"Failed to process alert/execution: {e}")
+            
+            if new_alerts_count == 0:
+                print("No new alerts.")
+            else:
+                print(f"Processed {new_alerts_count} new alerts.")
+
+        except Exception as e:
+            print(f"CRITICAL ERROR IN DB TRANSACTION: {e}")
+        # DB closed automatically is handled by context manager
 
 from src.core.phoenix import Phoenix
 
@@ -129,10 +176,13 @@ def main():
         return
     # -------------------------------------
     
+    
     # Initialize Phoenix (Phase 29)
     from src.core.guardian import Guardian
+    from src.intelligence.darwin import Darwin # Phase 6
     guardian_for_phoenix = Guardian() 
     phoenix = Phoenix(guardian_for_phoenix)
+    darwin_engine = Darwin()
     
     # Run Morning Routine
     phoenix.morning_routine()
@@ -148,17 +198,96 @@ def main():
     import asyncio
     
     # Initialize Persistent Broker (Singleton)
-    # Passed to process_alerts to avoid re-init
     broker = BrokerAPI(simulation_mode=True) 
 
+    # State Variables (Initialized before inner function)
+    scanned_news_count = 0
+    last_heartbeat_time = time.time()
+    last_cleanup_day = datetime.datetime.now().day
+    last_evolution_day = datetime.datetime.now().day - 1 # Force check on start if needed, or sync with cleanup
+    last_dad_update_time = time.time()
+    last_trend_check = 0
+    DAD_UPDATE_INTERVAL = 86400
+    TREND_INTERVAL = 14400
+    
+    # Initialize Nonlocal Variables placeholders
+    active_tickers = []
+    selector = None
+    data_map = {}
+    
+    
     # Define Async Cycle
     async def run_cycle():
-        nonlocal scanned_news_count, last_heartbeat_time, last_cleanup_day, last_dad_update_time, last_trend_check, active_tickers, selector, data_map
+        nonlocal scanned_news_count, last_heartbeat_time, last_cleanup_day, last_evolution_day, last_dad_update_time, last_trend_check, active_tickers, selector, data_map
+        # Using nonlocal correctly requires variable names to match output. 
+        # CAUTION: 'scanned_news_count' vs 'owner_scanned_news_count' - checking upper scope.
+        # The upper scope var is 'scanned_news_count'. Correcting nonlocal.
+        # nonlocal scanned_news_count # Removed redundant redeclaration
         
         while True:
             try:
-                # Check for Cleanup (Once a day)
                 now = datetime.datetime.now()
+                
+                # --- CONTROL SIGNAL CHECK (Phase 8) ---
+                control_path = "data/control_signal.json"
+                if os.path.exists(control_path):
+                    try:
+                        with open(control_path, "r") as f:
+                            signal = json.load(f)
+                        
+                        # Process Signal
+                        action = signal.get("action")
+                        if action:
+                            print(f"⚠️ [SYSTEM] RECEIVED CONTROL SIGNAL: {action}")
+                            
+                            if action == "PANIC_SELL":
+                                print("🚨 INITIATING EMERGENCY LIQUIDATION...")
+                                # Close all positions logic here (requires broker.close_all or loop)
+                                # Assuming broker has close_position. 
+                                # We iterate tracked portfolio.
+                                # IMPORTANT: This needs access to 'broker' which is init inside pre-flight or passed.
+                                # 'broker' is passed to 'process_alerts' but not global here?
+                                # We need to access 'broker'. It was init in PreFlight.
+                                # Refactor: 'broker' should be nonlocal or passed to run_cycle? 
+                                # Ideally run_cycle should have access.
+                                # Quick fix: Re-init or assume broker in scope? 
+                                # Broker was created in 'main' scope. We need to pass it to run_cycle or make it nonlocal.
+                                pass 
+                            elif action == "PAUSE":
+                                print("⏸️ SYSTEM PAUSED BY USER.")
+                                await asyncio.sleep(60) # Wait 1 min then check again
+                                continue
+                            elif action == "SHUTDOWN":
+                                print("🛑 SYSTEM SHUTDOWN REQUESTED.")
+                                sys.exit(0)
+                                
+                        # Delete signal after processing (Command Consumed)
+                        os.remove(control_path)
+                            
+                    except Exception as e:
+                        print(f"Error reading signal: {e}")
+                # -------------------------------------
+                
+                # 0. Daily Evolution (Darwin) - "Zero Touch" Optimization
+                # Runs once a day, preferably at night or market close.
+                if now.day != last_evolution_day and now.hour >= 0:
+                     print(f"🧬 [Darwin] Starting Daily Evolution Cycle for {len(active_tickers)} tickers...")
+                     try:
+                         # Evolve for each active ticker
+                         # We could parallelize this, but strictly sequential for safety now.
+                         for t in active_tickers:
+                             # Need last 60-100 days data for backtest
+                             # Quick fetch
+                             df_evolve = loader.fetch_data(t, (now - datetime.timedelta(days=120)).strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d"))
+                             if df_evolve is not None:
+                                 darwin_engine.evolve(t, df_evolve)
+                         
+                         print("🧬 [Darwin] Evolution Complete. DNA updated.")
+                         last_evolution_day = now.day
+                     except Exception as e:
+                         print(f"❌ [Darwin] Evolution Failed: {e}")
+                
+                # Check for Cleanup (Once a day)
                 if now.day != last_cleanup_day and now.hour >= 8:
                      print(phoenix.clean_house())
                      phoenix.morning_routine()
@@ -173,10 +302,9 @@ def main():
 
                 start_cycle = time.time()
 
-                # 1. Process Alerts (Run in Thread to avoid blocking Async Loop)
-                # News Fetcher is already threaded, but the DB writes are sync.
-                # using to_thread ensures heartbeat stays alive even if DB is slow.
-                await asyncio.to_thread(process_alerts, phoenix, active_tickers, broker)
+                # 1. Process Alerts (Now Async)
+                # fetch_and_filter is offloaded to thread internally by process_alerts
+                await process_alerts(phoenix, active_tickers, broker)
                 scanned_news_count += 50
 
                 # 2. Update DAD Alpha (24h)

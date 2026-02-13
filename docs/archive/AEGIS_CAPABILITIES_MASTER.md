@@ -104,10 +104,16 @@ if (Price < SMA50) and (ADX > 25) and (RSI > 45):
 ### 2.5. Cơ Chế Tự Phục Hồi (Phoenix Protocol)
 Làm thế nào hệ thống quay lại sau khi bị Guardian khóa?
 
-**Quy trình Tái sinh:**
 1.  **Probation Mode (Chế độ Thử thách)**: Hệ thống vẫn phân tích, vẫn ra tín hiệu, nhưng chỉ chạy trên **Paper Trading** (Tiền ảo).
 2.  **Validation Streak**: Hệ thống phải thắng **3 lệnh liên tiếp** (trên Paper) để chứng minh rằng thuật toán đã khớp lại với thị trường.
 3.  **Resurrection**: Sau khi đạt chuỗi thắng 3, Guardian mở khóa, cho phép đi lệnh tiền thật (Live Trading) trở lại.
+
+### 2.6. Tiến Hóa Di Truyền (Project Darwin - Phase 62)
+Thay vì dùng tham số cố định (SMA50, RSI70), Aegis sử dụng thuật toán di truyền:
+*   **Gene**: Mỗi tham số là một gen (ví dụ: `rsi_period=14`).
+*   **Mutation**: Mỗi ngày, hệ thống tạo ra 50 biến thể ngẫu nhiên.
+*   **Selection**: Biến thể nào có lợi nhuận cao nhất trong 30 ngày qua sẽ được chọn làm "Cấu hình Chính" cho ngày mai.
+*   *Kết quả*: Bot tự thích nghi với thị trường nhanh hơn con người.
 
 ---
 
@@ -149,7 +155,15 @@ Dữ liệu trích xuất từ 12 năm Backtest (2014-2026) với phí giao dị
 2.  **Processing**: `MarketAnalyst` chấm điểm tin tức + `TechnicalAnalyst` đo RSI/ADX.
 3.  **Decision**: Tổng hợp điểm WIS -> Gửi cho `Guardian` duyệt.
 4.  **Execution**: Nếu Guardian OK -> Gửi lệnh mua/bán.
+4.  **Execution**: Nếu Guardian OK -> Gửi lệnh mua/bán.
 5.  **Monitoring**: Dashboard hiển thị PnL và trạng thái lệnh Real-time.
+
+### 4.3. Giao Diện Điều Khiển (Sentinel Dashboard)
+*   **Công nghệ**: React, Vite, TailwindCSS.
+*   **Tính năng**:
+    *   **Live Feed**: Xem log hoạt động theo thời gian thực.
+    *   **Panic Button**: Nút đỏ "EMERGENCY LIQUIDATION" để bán toàn bộ tài sản khi có biến.
+    *   **DNA Editor**: Xem và chỉnh sửa gen của Darwin.
 
 ---
 
