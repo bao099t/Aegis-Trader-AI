@@ -409,20 +409,20 @@ Hệ thống thiết kế "Plug & Play".
   2.  **Deep Code Audit**: Loại bỏ hoàn toàn lỗi ngầm (Silent Failures) và lỗi làm tròn tiền tệ (Floating Point).
 - **Trạng thái**: **HOÀN THÀNH SỨ MỆNH (MISSION ACCOMPLISHED)**.
 
-### [PHASE 6: PROJECT DARWIN (HỆ THỐNG TIẾN HÓA TỰ ĐỘNG)]
+### [PHASE 62: PROJECT DARWIN (HỆ THỐNG TIẾN HÓA TỰ ĐỘNG)]
 - **Mục tiêu**: Loại bỏ việc con người phải chỉnh tay các tham số (SMA, RSI).
 - **Thực thi**:
   - Module `src/intelligence/darwin.py` chạy lúc 00:00 hàng ngày.
   - Sử dụng **Genetic Algorithm** (Giải thuật di truyền) để lai tạo hàng ngàn bộ tham số.
   - Chọn ra bộ "DNA" tốt nhất cho từng mã cổ phiếu và áp dụng cho ngày hôm sau.
 
-### [PHASE 7: FUTURES COMPATIBILITY (TƯƠNG THÍCH PHÁI SINH)]
+### [PHASE 63: FUTURES COMPATIBILITY (TƯƠNG THÍCH PHÁI SINH)]
 - **Mục tiêu**: Đánh cả hai chiều (Long/Short).
 - **Thực thi**:
   - Chế độ **Dynamic Execution**: Tự động chuyển lệnh Mua sang ví Spot (An toàn) và lệnh Bán sang ví Futures (Kiếm lời khi sập).
   - Hỗ trợ **Cross Margin** và quản lý rủi ro thanh lý.
 
-### [PHASE 8: PROFESSIONALIZATION (CHUYÊN NGHIỆP HÓA)]
+### [PHASE 64: PROFESSIONALIZATION (CHUYÊN NGHIỆP HÓA)]
 - **Mục tiêu**: Biến dòng lệnh (CLI) thành sản phẩm thương mại.
 - **Thực thi**:
   1.  **Cyberpunk Dashboard**: Giao diện React/Vite hiển thị Real-time.
